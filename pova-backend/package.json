@@ -1,0 +1,35 @@
+{
+  "name": "pova-backend",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "lint": "./node_modules/.bin/eslint",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start-devserver": "nodemon --exec babel-node server.js",
+    "start": "node dist/server.js",
+    "dev": "nodemon --exec babel-node",
+    "build": "babel server.js -d dist"
+  },
+  "keywords": [],
+  "authors": [
+    "Pius Aaron",
+    "Vivian Okose"
+  ],
+  "license": "ISC",
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "jsonwebtoken": "^9.0.2",
+    "mongodb": "^6.8.1"
+  },
+  "devDependencies": {
+    "@babel/cli": "^7.25.6",
+    "@babel/core": "^7.25.2",
+    "@babel/node": "^7.25.0",
+    "@babel/preset-env": "^7.25.4",
+    "eslint": "^9.10.0",
+    "nodemon": "^3.1.4"
+  }
+}

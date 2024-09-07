@@ -1,0 +1,549 @@
+openapi: 3.0.0
+info:
+  title: POVA RestAPI documentation
+  description: |-
+    This is a Blog server based on OpenApi 3.0 specification. You can find more about pova on our
+    github repository [https://github.com/ALX-POVA](https://github.com/ALX-POVA).
+
+    We the team at POVA are about to initiate the development phase of our application and we decided
+    to take the design first approach.
+
+    This documentation is subject to modifications and improvement as times goes on based on the need of
+    our application and our users.
+
+    Feel free to support us with your reviews and feed backs.
+
+    Coding with Love - POVA team
+  contact:
+    email: apiteam@swagger.io
+  license:
+    name: Apache 2.0
+    url: 'http://www.apache.org/licenses/LICENSE-2.0.html'
+  version: 1.0.0
+# servers:
+#   - url: will be provided
+# Applicationn endpoints
+paths:
+  # User paths and auths
+  /auth/register:
+    post:
+      summary: Create user
+      description: Validate and create a new user
+      requestBody:
+        description: Create a new user
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateUser'
+      responses:
+        '201':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '400':
+          description: 'error on missing required fields: firstName, lastName, email, password'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /auth/login:
+    post:
+      description: Authenticates and logs in a user
+      requestBody:
+        content:
+          application/json:
+            schema:
+              required:
+                - email/username
+                - password
+              type: object
+      responses:
+        '200':
+          description: login Successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '400':
+          description: 'Missing required fields: email/username, password'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+  /auth/logout:
+    post:
+      summary: log out user
+      responses:
+        '204':
+          description: 'logout Successful, no content'
+  /auth/forgot-password:
+    post:
+      description: handles reset via email
+      responses:
+        '200':
+          description: Reset password will intiated
+        '404':
+          description: user email/username not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /auth/reset-password:
+    post:
+      description: password reset with auth token sent to user's email
+      responses:
+        '200':
+          description: Password succesfully set
+  
+  /users/{userId}:
+    parameters:
+      - name: userId
+        required: true
+        in: path
+        schema:
+          type: string
+    get:
+      summary: retrieve user data
+      description: retrieve user data based on id with authtentiaction
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '404':
+          description: User not found error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /users/me:
+    get:
+      summary: retrives logged in user data
+      responses:
+        '200':
+          description: Successful retrival od user data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '401':
+          description: Unauthorized user
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    put:
+      summary: Update logged in user data
+      responses:
+        '200':
+          description: Successful Update
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '401':
+          description: Unauthenticated access
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /users/me/password:
+    description: Endpoint to change user password
+    put:
+      summary: change user password
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                password:
+                  type: string
+      responses:
+        '200':
+          description: Successful operation
+        '400':
+          description: 'Missing password field:'
+        '401':
+          description: Unauthorized user
+  # user blog posts operation endpoints
+  /articles:
+    parameters:
+      - name: page
+        in: query
+        required: false
+        description: Page number
+        schema:
+          type: integer
+          default: 1
+      - name: limit
+        in: query
+        required: false
+        description: Number of items per page
+        schema:
+          type: integer
+          default: 10
+    get:
+      description: retrives articles based on users specified profiled interest
+      responses:
+        '200':
+          description: Ok
+          content:
+            application/json:
+              schema:
+                properties:
+                  articles:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Article'
+    post:
+      description: Create Blog article or post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateUser'
+      responses:
+        '201':
+          description: Created article
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Article'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /articles/popular:
+    parameters:
+      - name: page
+        in: query
+        required: false
+        description: Page number
+        schema:
+          type: integer
+          default: 1
+      - name: limit
+        in: query
+        required: false
+        description: Number of items per page
+        schema:
+          type: integer
+          default: 10
+    get:
+      summary: Get popular articles
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Article'
+  /articles/search:
+    description: Artticle search endpoint
+    get:
+      summary: Search for articles
+      parameters:
+        - name: query
+          in: query
+          description: Search keyword
+          required: false
+          schema:
+            type: string
+        - name: category
+          in: query
+          description: Filter by article category
+          required: false
+          schema:
+            type: string
+        - name: tag
+          in: query
+          description: Filter by tag
+          required: false
+          schema:
+            type: string
+      responses:
+        '200':
+          description: List of articles matching the search
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Article'
+  '/articles/{articleId}':
+    parameters:
+      - name: articleId
+        in: path
+        required: true
+        schema:
+          type: integer
+    get:
+      description: retrives an article content based on its id
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Article'
+        '404':
+          description: Not found error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  '/articles/{articleId}/edit':
+    parameters:
+      - name: articleId
+        required: true
+        in: path
+        schema:
+          type: string
+    put:
+      description: update article
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateArticle'
+      responses:
+        '200':
+          description: update Successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Article'
+        '401':
+          description: unauthorized error
+  '/articles/{articleId}/like':
+    description: Article like endpoint
+    parameters:
+      - name: articleId
+        schema:
+          type: string
+        description: article id to like
+        required: true
+        in: path
+    post:
+      responses:
+        '200':
+          description: Successful operation
+  '/articles/{articleId}/unlike':
+    description: Article unlike endpoint
+    parameters:
+      - name: articleId
+        schema:
+          type: string
+        description: article id to unlike
+        required: true
+        in: path
+    delete:
+      responses:
+        '204':
+          description: Successful operation
+  '/articles/{articleId}/comment':
+    post:
+      summary: Post a comment on an article
+      parameters:
+        - name: articleId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - content
+              properties:
+                content:
+                  type: string
+                  description: Comment content
+      responses:
+        '201':
+          description: Comment posted successfully
+        '404':
+          description: Article not found
+  '/articles/{articleId}/comments/{commentId}/like':
+    description: Article like endpoint
+    parameters:
+      - name: articleId
+        schema:
+          type: string
+        description: article id to like
+        required: true
+        in: path
+      - name: commentId
+        schema:
+          type: string
+        required: true
+        in: path
+    post:
+      responses:
+        '200':
+          description: Successful operation
+  '/articles/{articleId}/{commentId}/unlike':
+    description: Article unlike endpoint
+    parameters:
+      - name: articleId
+        schema:
+          type: string
+        description: article id to unlike
+        required: true
+        in: path
+      - name: commentId
+        schema:
+          type: string
+        required: true
+        in: path
+    delete:
+      responses:
+        '204':
+          description: Successful operation
+  '/articles/{articleId}/comments/{commentId}':
+    description: ''
+    parameters:
+      - name: articleId
+        schema:
+          type: string
+        description: article id to unlike
+        required: true
+        in: path
+      - name: commentId
+        schema:
+          type: string
+        required: true
+        in: path
+    delete:
+      responses:
+        '204':
+          description: Successful operation
+components:
+  schemas:
+    CreateUser:
+      description: registration data payload
+      type: object
+      required:
+        - firstName
+        - lastName
+        - email
+        - password
+      properties:
+        firstName:
+          type: string
+        lastName:
+          type: string
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          minLength: 8
+          maxLength: 50
+        username:
+          type: string
+          minLength: 4
+          maxLength: 30
+    User:
+      description: user data as response from the server
+      type: object
+      properties:
+        id:
+          type: string
+        firstName:
+          type: string
+        lastName:
+          type: string
+        email:
+          type: string
+          format: email
+        username:
+          type: string
+          minLength: 4
+          maxLength: 30
+    Article:
+      description: user blog post content schema
+      type: object
+      properties:
+        id:
+          type: string
+        authorId:
+          type: string
+        title:
+          type: string
+        maxLength:
+          type: integer
+        content:
+          type: string
+        category:
+          type: string
+        tags:
+          type: array
+          items:
+            type: string
+        comments:
+          type: array
+          items:
+            $ref: '#/components/schemas/Comment'
+    CreateArticle:
+      description: New article schema
+      type: object
+      required:
+        - content
+        - authorId
+        - title
+      properties:
+        id:
+          type: string
+        authorId:
+          type: string
+        title:
+          type: string
+          maxLength: 30
+        content:
+          type: string
+        category:
+          type: string
+        tags:
+          type: array
+          items:
+            type: string
+    Comment:
+      description: article comments
+      required:
+        - content
+        - authorId
+        - articleId
+      properties:
+        id:
+          type: string
+        authorId:
+          type: string
+        content:
+          type: string
+        articleId:
+          type: string
+    Error:
+      description: Error objects
+      type: object
+      properties:
+        error:
+          description: error message body
+          type: string
+  securitySchemes:
+    apiKey_1:
+      name: apiKey
+      type: apiKey
+      in: query
