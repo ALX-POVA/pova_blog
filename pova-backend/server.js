@@ -14,7 +14,7 @@ app.get('/', (req, res) => {
     res.send("Welcome to POVA");
 })
 app.get('/api/v1/', (req, res) => {
-    res.send("Welcome to POVA API\n\n - Every end is point");
+    res.send("Welcome to POVA API\n\n - Every end is a point");
 })
 
 const PORT = process.env.PORT || 5000
