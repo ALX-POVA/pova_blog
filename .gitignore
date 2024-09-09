@@ -1,3 +1,4 @@
 node_modules
 .env
 .*.*swp
+package-lock.json

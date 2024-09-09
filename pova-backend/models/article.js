@@ -1,6 +1,6 @@
 // models/article.js
 
-import { db } from '../config/db';
+import { db } from '../config/db.js';
 import joi from 'joi';
 import { ObjectId } from 'mongodb';
 
@@ -27,7 +27,7 @@ const addArticle = async (articleData) => {
     try{
         const result = await articles.insertOne(articleData);
 
-        return result.insertedId;
+        return result.insertedId.toString();
     } catch (err) {
         console.error(err);
         return null;
@@ -41,7 +41,7 @@ const addArticle = async (articleData) => {
 
 const getArticle = async (articleId) => {
     try{
-        const atricle = await articles.findOne({_id: ObjectId(articleId)});
+        const atricle = await articles.findOne({_id: new ObjectId(articleId)});
 
         if (!atricle) return null;
 
@@ -59,8 +59,10 @@ const getArticle = async (articleId) => {
 
 const deleteArticle = async (articleId) => {
     try{
-        const result = await articles.deleteOne({findOne});
-        result.acknowledged ? articleId : null;
+        const result = await articles.deleteOne({_id: new ObjectId(articleId)});
+        // use count to confirm delete
+        if (result.deletedCount) return articleId;
+        return null;
     } catch (err) {
         console.error(err);
         return null;
@@ -90,18 +92,21 @@ const getDrafts = async (authorId) => {
  * @param {object} update 
  * @returns 
  */
-const updateUser = async (articleId, update) => {
+const updateArticle = async (articleId, update) => {
 	// retreives user to update
 	try {
-		const articles = await articles.findOne({_id: ObjectId(articleId)});
+		const article = await articles.findOne({_id: new ObjectId(articleId)});
 
 		if (!user) return null;
 
-		await articles.updateOne({$set: update})
+		await articles.updateOne({$set: update});
+        return await getArticle({_id: ObjectId(articleId)});
 	} catch (error){
 		console.error(error);
-        return null
+        return null;
 	}
 }
 
-export {addArticle, getArticle, deleteArticle};
+export {addArticle, getArticle, deleteArticle, updateArticle,
+    getDrafts
+};

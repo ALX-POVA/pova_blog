@@ -34,7 +34,7 @@ const addUser = async (userData) => {
 
   try{
     const result = await users.insertOne(userData);
-    return result.insertedId;
+    return result.insertedId.toString();
   } catch (err){
     console.error(err.message);
     return null;
@@ -50,6 +50,7 @@ const getUser = async (getQuery) => {
   const user = await users.findOne(getQuery);
 
 	if (!user) return null;
+	delete user.password;
   return user
 }
 
@@ -61,8 +62,9 @@ const getUser = async (getQuery) => {
 
 const deleteUser = async (userId) => {
 	try{
-		const result = await users.deleteOne({_id: ObjectId(userId)});
-		return result.acknowledged ? userId : null;
+		const result = await users.deleteOne({_id: new ObjectId(userId)});
+		if (result.deletedCount > 0) return userId.toString();
+		return null;
 	} catch (err) {
 		console.error(err);
 		return undefined // to indicated error
@@ -77,16 +79,31 @@ const deleteUser = async (userId) => {
  */
 
 const updateUser = async (userId, update) => {
-	// retreives user to update
-	try {
-		const user = await users.findOne({_id: ObjectId(userId)});
+  try {
+    // Ensure userId is a valid ObjectId
+    const user = await users.findOne({ _id: ObjectId(userId) });
 
-		if (!user) return null;
+    if (!user) {
+      return null;  // User not found
+    }
 
-		await users.updateOne({$set: update})
-	} catch (err){
-		console.error(err)
-	}
-}
+    // Update the user's data
+    const result = await users.updateOne(
+      { _id: ObjectId(userId) },  // Filter: update the user with this userId
+      { $set: update }  // Set the fields to be updated
+    );
+
+    if (result.modifiedCount > 0) {
+      // Return the updated user or a success message
+      return await users.findOne({ _id: ObjectId(userId) });  // Optionally, return updated user
+    } else {
+      return null;  // No changes made
+    }
+  } catch (err) {
+    console.error(err);
+    return null;  // Handle the error appropriately
+  }
+};
+
 
 export { userSchema, getUser, addUser, deleteUser, updateUser}

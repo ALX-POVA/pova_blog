@@ -20,5 +20,5 @@ const connectDB = async() => {
   }
 }
 
-const db = client.db(process.env.DATABASE || "povaDB")
+const db = client.db(process.env.DATABASE || "povaDB");
 export { connectDB, client, db};
