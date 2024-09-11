@@ -1,6 +1,7 @@
 // server.js
 import express from 'express';
-import { connectDB, client } from './config/db';
+import { connectDB, client } from './config/db.js';
+import router from './routes/index.js'
 
 const app = express();
 
@@ -9,6 +10,7 @@ connectDB();
 
 // Middleware to pass Json
 app.use(express.json())
+app.use('/api/v1/auth', router);
 
 app.get('/', (req, res) => {
     res.send("Welcome to POVA");
