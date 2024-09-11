@@ -1,5 +1,3 @@
-// models/article.js
-
 import { db } from '../config/db.js';
 import joi from 'joi';
 import { ObjectId } from 'mongodb';
@@ -12,101 +10,115 @@ const articleSchema = joi.object().keys({
     content: joi.string().required(),
     category: joi.string().optional(),
     tags: joi.array().optional()
-})
+});
 
 /**
- * adds a new article to the data base
+ * Adds a new article to the database
  * @param {object} - Article data
- * @returns {string} - Atricle inserted Id
+ * @returns {string} - Article inserted Id
  */
 const addArticle = async (articleData) => {
-    const {error} = articleSchema.validate(articleData);
+    const { error } = articleSchema.validate(articleData);
 
     if (error) throw new Error(error.details[0].message);
 
-    try{
-        const result = await articles.insertOne(articleData);
+    try {
+        // Convert authorId to ObjectId
+        articleData.authorId = new ObjectId(articleData.authorId);
 
+        const result = await articles.insertOne(articleData);
         return result.insertedId.toString();
     } catch (err) {
-        console.error(err);
+        console.error('Error adding article:', err);
         return null;
     }
-}
+};
 
 /**
  * Gets an article by its id
- * @param {string} articleId - atricle id to get
+ * @param {string} articleId - article id to get
+ * @returns {object|null} - The article or null if not found
  */
-
 const getArticle = async (articleId) => {
-    try{
-        const atricle = await articles.findOne({_id: new ObjectId(articleId)});
+    try {
+        const article = await articles.findOne({ _id: new ObjectId(articleId) });
 
-        if (!atricle) return null;
+        if (!article) return null;
 
-        return atricle;
-    } catch (err){
-        console.error(err);
+        return article;
+    } catch (err) {
+        console.error('Error getting article:', err);
+        return null;
     }
-}
+};
 
 /**
  * Deletes an article from the database
- * @param {string} articleId - atricle refrence to delete
- * @returns {string} - article refrence or null on failure
+ * @param {string} articleId - article reference to delete
+ * @returns {string|null} - articleId if successful, or null on failure
  */
-
 const deleteArticle = async (articleId) => {
-    try{
-        const result = await articles.deleteOne({_id: new ObjectId(articleId)});
-        // use count to confirm delete
+    try {
+        const result = await articles.deleteOne({ _id: new ObjectId(articleId) });
+
         if (result.deletedCount) return articleId;
         return null;
     } catch (err) {
-        console.error(err);
+        console.error('Error deleting article:', err);
         return null;
     }
-}
+};
 
 /**
- * getDrafts - gets user's draft articles
- * @param {string} userId - user's refrence
- * @returns {array} - list of atricle drafts
+ * Gets user's draft articles
+ * @param {string} authorId - user's reference
+ * @returns {array|null} - list of article drafts or null on error
  */
-
 const getDrafts = async (authorId) => {
     try {
-        const drafts = await articles.find({authorId, published: false}).toArray();
-
+        // Convert authorId to ObjectId
+        const drafts = await articles.find({ authorId: new ObjectId(authorId), published: false }).toArray();
         return drafts;
     } catch (err) {
-        console.error(err);
+        console.error('Error getting drafts:', err);
         return null;
     }
-}
+};
 
 /**
  * Updates an article
- * @param {string} articleId 
- * @param {object} update 
- * @returns 
+ * @param {string} articleId - article reference for update
+ * @param {object} update - article data to update
+ * @returns {object|null} - Updated article or null on failure
  */
 const updateArticle = async (articleId, update) => {
-	// retreives user to update
-	try {
-		const article = await articles.findOne({_id: new ObjectId(articleId)});
+    try {
+        // Find the article
+        const article = await articles.findOne({ _id: new ObjectId(articleId) });
 
-		if (!user) return null;
+        if (!article) return null;  // Article not found
 
-		await articles.updateOne({$set: update});
-        return await getArticle({_id: ObjectId(articleId)});
-	} catch (error){
-		console.error(error);
+        // Update the article's data
+        const result = await articles.updateOne(
+            { _id: new ObjectId(articleId) },  // Filter by article ID
+            { $set: update }  // Set the updated fields
+        );
+
+        if (result.modifiedCount > 0) {
+            return await getArticle(articleId);  // Return the updated article
+        } else {
+            return null;  // No changes made
+        }
+    } catch (error) {
+        console.error('Error updating article:', error);
         return null;
-	}
-}
+    }
+};
 
-export {addArticle, getArticle, deleteArticle, updateArticle,
+export {
+    addArticle,
+    getArticle,
+    deleteArticle,
+    updateArticle,
     getDrafts
 };

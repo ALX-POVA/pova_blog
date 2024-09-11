@@ -2,17 +2,18 @@
 
 import { expect } from 'chai';
 import { addArticle, getArticle, deleteArticle } from '../../models/article.js';
-import { db, connectDB, client } from '../../config/db.js';
+import { connectDB, client, db } from '../../config/db.js';
 import { ObjectId } from 'mongodb';
 
-describe('Article Model', function() {
 
-  before(async function() {
-    await connectDB();
-  });
+
+describe("Article Model", function () {
+    this.timeout(10000);
+    before(async function () {
+        await connectDB();
+    });
 
   after(async function() {
-    await db.collection('Articles').deleteMany({});
     await client.close();
   });
 
