@@ -1,109 +1,118 @@
 // models/user.js
-/**
- * This module defines user schemas and Validations
- */
-
-import joi from 'joi';
+import Joi from 'joi';
 import { db } from '../config/db.js';
 import { ObjectId } from 'mongodb';
+import bcrypt from 'bcryptjs';
 
 const users = db.collection('Users');
 
-const userSchema = joi.object().keys({
-  firstName: joi.string().min(3).max(60).required(),
-  lastName: joi.string().min(3).max(60).required(),
-  username: joi.string().min(5).max(30),
-  password: joi.string().min(8).max(50).required(),
-  email: joi.string().required()
+const userSchema = Joi.object({
+  fullName: Joi.string().min(3).max(60).required().messages({
+    'string.base': 'Full name must be a string',
+    'string.min': 'Full name should have a minimum length of 3',
+    'string.max': 'Full name should have a maximum length of 60',
+    'any.required': 'Missing FullName field',
+  }),
+  email: Joi.string().email().required().messages({
+    'string.email': 'Invalid email format',
+    'any.required': 'Missing email field'
+  }),
+  password: Joi.string().min(8).required().messages({
+    'string.min': 'Password should have a minimum length of 8',
+    'any.required': 'Missing password'
+  }),
 });
 
+/**
+ * 
+ * @param {object} userData - User data to validate
+ * @returns {object|null} object with error message if validation failed, null on success
+ */
+const validateUser = (userData) => {
+  const { error } = userSchema.validate(userData, { abortEarly: false });
+
+  if (error) {
+    // Extract error message from Joi details
+    const errors = error.details.map(detail => {
+      return { error: detail.message };
+    });
+    return errors[0]; // return first validation error
+  }
+}
 
 /**
- * adds user to the data base
- * @param user data object
- * @return {string} user Id
+ * Adds user to the database
+ * @param {object} userData - user data
+ * @return {string|null} - user Id
  */
-
 const addUser = async (userData) => {
-  const { error } = userSchema.validate(userData);
+  const validationError = validateUser(userData);
+    if (validationError)
+      return validationError;
 
-  // validates 
-  if (error){
-    throw new Error(error.details[0].message);
-  }
+  try {
+    const existingUser = await users.findOne({email: userData.email});
 
-  try{
+    if (existingUser){
+      return {error: "User already exists"};
+    }
+    userData.password = bcrypt.hashSync(userData.password, 10);
     const result = await users.insertOne(userData);
+    delete userData.password;
     return result.insertedId.toString();
-  } catch (err){
+  } catch (err) {
     console.error(err.message);
     return null;
   }
-}
+};
 
 /**
  * Gets a user by query property
  * @param {object} getQuery - Query object to find user in the database
- * @returns {object} - The user data or null
+ * @returns {object|null} - The user data or null
  */
 const getUser = async (getQuery) => {
   const user = await users.findOne(getQuery);
-
-	if (!user) return null;
-	delete user.password;
-  return user
-}
+  if (!user) return null;
+  return user;
+};
 
 /**
  * Deletes a user by id
- * @param {string} userId - user refrence/id
- * @returns {string|null} - return userId if successful or null on failure | error
+ * @param {string} userId - user reference/id
+ * @returns {string|null} - userId if successful or null
  */
-
 const deleteUser = async (userId) => {
-	try{
-		const result = await users.deleteOne({_id: new ObjectId(userId)});
-		if (result.deletedCount > 0) return userId.toString();
-		return null;
-	} catch (err) {
-		console.error(err);
-		return undefined // to indicated error
-	}
-}
-
-/**
- * Updates user
- * @param {string} userId - user refrence for update
- * @param {object} update - user data to update
- * @returns {object} - user object with changes
- */
-
-const updateUser = async (userId, update) => {
   try {
-    // Ensure userId is a valid ObjectId
-    const user = await users.findOne({ _id: ObjectId(userId) });
-
-    if (!user) {
-      return null;  // User not found
-    }
-
-    // Update the user's data
-    const result = await users.updateOne(
-      { _id: ObjectId(userId) },  // Filter: update the user with this userId
-      { $set: update }  // Set the fields to be updated
-    );
-
-    if (result.modifiedCount > 0) {
-      // Return the updated user or a success message
-      return await users.findOne({ _id: ObjectId(userId) });  // Optionally, return updated user
-    } else {
-      return null;  // No changes made
-    }
+    const result = await users.deleteOne({ _id: new ObjectId(userId) });
+    return result.deletedCount > 0 ? userId.toString() : null;
   } catch (err) {
     console.error(err);
-    return null;  // Handle the error appropriately
+    return undefined;
   }
 };
 
+/**
+ * Updates user
+ * @param {string} userId - user reference for update
+ * @param {object} update - user data to update
+ * @returns {object|null} - updated user object or null
+ */
+const updateUser = async (userId, update) => {
+  try {
+    const user = await users.findOne({ _id: new ObjectId(userId) });
+    if (!user) return null;
 
-export { userSchema, getUser, addUser, deleteUser, updateUser}
+    const result = await users.updateOne(
+      { _id: new ObjectId(userId) },
+      { $set: update }
+    );
+		const modifiedUser = await users.findOne({ _id: new ObjectId(userId) });
+    return result.modifiedCount > 0 ? modifiedUser : null;
+  } catch (err) {
+    console.error(err);
+    return null;
+  }
+};
+
+export { userSchema, getUser, addUser, deleteUser, updateUser };
