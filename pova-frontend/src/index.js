@@ -1,11 +1,14 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
+/* import global styles */
+import 'antd/dist/antd.css';
+import 'antd/dist/antd.css';
+import "./assests/scss/base.scss";
 import "./index.css";
 import App from "./App";
+import '@quasar/extras/ionicons-v4/ionicons-v4.css';
 import reportWebVitals from "./reportWebVitals";
 import { BrowserRouter } from "react-router-dom";
-
-import "./assests/scss/base.scss";
 
 const root = ReactDOM.createRoot(document.getElementById("root"));
 root.render(

@@ -1,8 +1,6 @@
 /* import logo from "./logo.svg"; */
 import "./App.css";
 import { Routes, Route } from "react-router-dom";
-import "./assests/scss/base.scss";
-
 import Navigation from "./components/Navbar";
 
 import Home from "./pages/Home";
@@ -27,6 +25,7 @@ function App() {
         <Route exact path="/contact" element={<Contact />} />
         <Route exact path="/about" element={<About />} />
         <Route exact path="/categories" element={<Categories />} />
+        <Route exact path="/contact" element={<Contact />} />
         <Route exact path="/login" element={<Login />} />
         <Route exact path="/signup" element={<Signup />} />
         <Route exact path="/create" element={<CreatePost />} />
