@@ -1,11 +1,14 @@
 /* import logo from "./logo.svg"; */
 import "./App.css";
 import { Routes, Route } from "react-router-dom";
-
-import Navigation from "./components/Navbar";
 import "./assests/scss/base.scss";
 
+import Navigation from "./components/Navbar";
+
 import Home from "./pages/Home";
+import About from "./pages/About";
+import Categories from "./pages/Categories";
+import Contact from "./pages/Contact";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import CreatePost from "./pages/CreatePost";
@@ -18,8 +21,12 @@ function App() {
   return (
     <div className="App">
       <Navigation />
+       
       <Routes>
         <Route exact path="/" element={<Home />} />
+        <Route exact path="/contact" element={<Contact />} />
+        <Route exact path="/about" element={<About />} />
+        <Route exact path="/categories" element={<Categories />} />
         <Route exact path="/login" element={<Login />} />
         <Route exact path="/signup" element={<Signup />} />
         <Route exact path="/create" element={<CreatePost />} />
