@@ -2,11 +2,12 @@
 import express from 'express';
 import { connectDB, client } from './config/db.js';
 import router from './routes/index.js'
+import UserController from './controllers/UserController.js';
 
 const app = express();
 
 // connect the database
-connectDB();
+await connectDB();
 
 // Middleware to pass Json
 app.use(express.json())
@@ -15,9 +16,7 @@ app.use('/api/v1/auth', router);
 app.get('/', (req, res) => {
     res.send("Welcome to POVA");
 })
-app.get('/api/v1/', (req, res) => {
-    res.send("Welcome to POVA API\n\n - Every end is a point");
-})
+app.use('/api/v1', router);
 
 const PORT = process.env.PORT || 5000
 
@@ -31,3 +30,5 @@ process.on('SIGINT', async () => {
     await client.close();
     process.exit(0);
 });
+
+export default app;

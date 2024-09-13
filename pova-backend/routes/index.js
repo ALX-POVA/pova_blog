@@ -1,10 +1,14 @@
 import {Router} from 'express';
-import AuthController from '../controllers/AuthController.js';
+import authRouter from './authRoutes.js';
+import BlogPostController from '../controllers/BlogPostController.js';
+import usersRouter from './usersRoutes.js';
+
+
 
 const router = Router();
 
-router.post('/register', AuthController.registerUser);
-router.post('/login', AuthController.loginUser);
-// router.get('/api/v1/auth/reset-token', AuthController.resetToken);
+router.use('/auth', authRouter);
+router.use('/users', usersRouter);
+router.get('/posts/drafts', BlogPostController.fetchMydrafts);
 
 export default router;
