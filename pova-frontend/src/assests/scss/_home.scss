@@ -1,0 +1,32 @@
+.home-wrapper {
+    display: flex;
+    justify-content: column;
+    background-color: #FFFFFF;
+    gap: 20px;
+    padding: 20px;
+}
+
+.home-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 80%;
+    margin: 20px auto;
+    padding: 0 20px;
+}
+
+.popular-post {
+    font-size: 14px;
+    height: auto;
+    color: $text-color-in-brand-color;
+    background: $brand-color;
+    padding: 0 10px 0 10px;
+    display: inline-block;
+    margin-top: 10px;
+}
+
+.popular-videos {
+    background-color: #FFFFFF;
+    padding: 20px;
+
+}
