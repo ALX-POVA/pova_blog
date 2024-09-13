@@ -2,6 +2,7 @@ import { addUser, getUser } from "../models/user.js";
 import Joi from "joi";
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
+import { generateToken } from "../middlewares/tokenAuth.js";
 
 class AuthController{
     static async registerUser(req, res) {
@@ -43,12 +44,11 @@ class AuthController{
             }
 
             // clean up the user object before sending the response
-            user.userId = user._id;
+            user.id = user._id;
             delete user.password;
             delete user._id;
 
-            const accessToken = jwt.sign({user: user.id}, process.env.ACCESS_TOKEN_SECRET_KEY,
-                {expiresIn: '2d'});
+            const accessToken = generateToken(user.id, '24h');
             user.accessToken = accessToken;
             return res.status(200).json(user);
         } catch (err) {
