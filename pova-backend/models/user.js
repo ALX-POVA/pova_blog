@@ -103,11 +103,15 @@ const updateUser = async (userId, update) => {
     const user = await users.findOne({ _id: new ObjectId(userId) });
     if (!user) return null;
 
+    if ('password' in update){
+      update.password = bcrypt.hashSync(update.password, 10);
+    }
     const result = await users.updateOne(
       { _id: new ObjectId(userId) },
       { $set: update }
     );
 		const modifiedUser = await users.findOne({ _id: new ObjectId(userId) });
+    delete modifiedUser.password;
     return result.modifiedCount > 0 ? modifiedUser : null;
   } catch (err) {
     console.error(err);
