@@ -1,17 +1,34 @@
+.nav {
+  background: #E3F9E5;
+}
+
 .site-navigation {
-  height: 65px;
-  width: 100px;
-  background: white;
+  height: 60px; /*navbar height */
+  width: 100%; /* full width */
+  background: none;
   display: flex;
   justify-content: space-between;
+  align-items: center;
+  padding: 0 20px;
   color: $text-color;
 
   span {
-    font-size: 20px;
+    font-size: 10px;
     font-weight: 500;
     display: flex;
     align-items: center;
-    margin-left: 35px;
+    margin-left: 0;
+  }
+
+  .menu-title {
+    font-weight: 500;
+    font-size: 15px;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    margin-left: 0;
+    margin-right: 0;
+    /* margin-top: 20px; */
   }
 
   ul {
@@ -22,17 +39,53 @@
     display: flex;
     align-items: center;
     list-style-type: none;
-    margin-right: 20px;
+    margin-right: 0;
+    color: $text-color;
+  }
+
+  /* Style for the first <ul> (left side) */
+  .primaryNavLinks {
+    display: flex;
+    align-items: center;
+    margin-left: 0;
+    justify-content: flex-start;
+    padding-left: 0;
+  }
+
+  /* Style for the second <ul> (right side) */
+  .secondaryNavLinks {
+    display: flex;
+    align-items: center;
+    margin-right: 0;
+    justify-content: flex-end;
+    padding-right: 10px;
+  }
+
+  li {
+    margin-right: 10px;
   }
 
   a {
     text-decoration: none;
     padding: 0 20px 0 20px;
-    font-size: 15px;
+    font-size: 13px;
     color: $text-color;
 
     &:hover {
-      color: text-link;
+      color: $text-link;
     }
+  }
+  .logo-brand {
+    font-weight: 500;
+    font-size: 20px;
+    background: $brand-color;
+    color: $text-color-in-brand-color;
+    padding: 0 0 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    /* height: auto; */
+    margin-top: 20px;
+    margin-block-end: 20px;
   }
 }

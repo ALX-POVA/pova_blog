@@ -1,8 +1,7 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
-/* import global styles */
-import 'antd/dist/antd.css';
-import 'antd/dist/antd.css';
+/* import global styles 
+import 'antd/dist/antd.css'; */
 import "./assests/scss/base.scss";
 import "./index.css";
 import App from "./App";
