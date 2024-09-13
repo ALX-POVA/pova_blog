@@ -2,9 +2,9 @@ import { db } from '../config/db.js';
 import joi from 'joi';
 import { ObjectId } from 'mongodb';
 
-const articles = db.collection("Articles");
+const blogs = db.collection("BlogPosts");
 
-const articleSchema = joi.object().keys({
+const blogPostSchema = joi.object().keys({
     authorId: joi.string().required(),
     title: joi.string().required(),
     content: joi.string().required(),
@@ -17,19 +17,19 @@ const articleSchema = joi.object().keys({
  * @param {object} - Article data
  * @returns {string} - Article inserted Id
  */
-const addArticle = async (articleData) => {
-    const { error } = articleSchema.validate(articleData);
+const addPost = async (blogData) => {
+    const { error } = blogPostSchema.validate(blogData);
 
-    if (error) throw new Error(error.details[0].message);
+    if (error) return {error: error.details[0].message};
 
     try {
         // Convert authorId to ObjectId
-        articleData.authorId = new ObjectId(articleData.authorId);
+        blogData.authorId = ObjectId(blogData.authorId);
 
-        const result = await articles.insertOne(articleData);
+        const result = await blogs.insertOne(blogData);
         return result.insertedId.toString();
     } catch (err) {
-        console.error('Error adding article:', err);
+        console.error('Error adding blog post:', err);
         return null;
     }
 };
@@ -39,9 +39,9 @@ const addArticle = async (articleData) => {
  * @param {string} articleId - article id to get
  * @returns {object|null} - The article or null if not found
  */
-const getArticle = async (articleId) => {
+const getPost = async (articleId) => {
     try {
-        const article = await articles.findOne({ _id: new ObjectId(articleId) });
+        const article = await blogs.findOne({ _id: new ObjectId(articleId) });
 
         if (!article) return null;
 
@@ -57,9 +57,9 @@ const getArticle = async (articleId) => {
  * @param {string} articleId - article reference to delete
  * @returns {string|null} - articleId if successful, or null on failure
  */
-const deleteArticle = async (articleId) => {
+const deletePost = async (articleId) => {
     try {
-        const result = await articles.deleteOne({ _id: new ObjectId(articleId) });
+        const result = await blogs.deleteOne({ _id: new ObjectId(articleId) });
 
         if (result.deletedCount) return articleId;
         return null;
@@ -77,7 +77,7 @@ const deleteArticle = async (articleId) => {
 const getDrafts = async (authorId) => {
     try {
         // Convert authorId to ObjectId
-        const drafts = await articles.find({ authorId: new ObjectId(authorId), published: false }).toArray();
+        const drafts = await blogs.find({ authorId: new ObjectId(authorId), published: false }).toArray();
         return drafts;
     } catch (err) {
         console.error('Error getting drafts:', err);
@@ -91,21 +91,21 @@ const getDrafts = async (authorId) => {
  * @param {object} update - article data to update
  * @returns {object|null} - Updated article or null on failure
  */
-const updateArticle = async (articleId, update) => {
+const updatePost = async (articleId, update) => {
     try {
         // Find the article
-        const article = await articles.findOne({ _id: new ObjectId(articleId) });
+        const article = await blogs.findOne({ _id: new ObjectId(articleId) });
 
         if (!article) return null;  // Article not found
 
         // Update the article's data
-        const result = await articles.updateOne(
+        const result = await blogs.updateOne(
             { _id: new ObjectId(articleId) },  // Filter by article ID
             { $set: update }  // Set the updated fields
         );
 
         if (result.modifiedCount > 0) {
-            return await getArticle(articleId);  // Return the updated article
+            return await getPost(articleId);  // Return the updated article
         } else {
             return null;  // No changes made
         }
@@ -116,9 +116,9 @@ const updateArticle = async (articleId, update) => {
 };
 
 export {
-    addArticle,
-    getArticle,
-    deleteArticle,
-    updateArticle,
+    addPost,
+    getPost,
+    deletePost,
+    updatePost,
     getDrafts
 };
