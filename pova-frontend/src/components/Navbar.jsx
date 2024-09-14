@@ -1,5 +1,6 @@
-import React from "react";
+import React, {useState} from "react";
 import { Link } from "react-router-dom";
+import { SearchOutline } from "react-ionicons";
 
 const primaryNavLinks = [
   {
@@ -22,10 +23,6 @@ const primaryNavLinks = [
 
 const secondaryNavLinks = [
   {
-    title: "Search",
-    path: "/search",
-  },
-  {
     title: "Edit",
     path: "/edit",
   },
@@ -40,6 +37,8 @@ const secondaryNavLinks = [
 ]
 
 export default function Navigation() {
+  const [searchOpen, setSearchOpen] = useState(false)
+
   return (
     <div className="nav">
     <nav className="site-navigation">
@@ -57,6 +56,13 @@ export default function Navigation() {
       {/* center section: logo */}
       <span className="logo-brand">POVA</span>
 
+        {/* Search icon */}
+        <SearchOutline
+          height="20px"
+          width="20px"
+          style={{ cursor: "pointer" }}
+          onClick={() => setSearchOpen(!searchOpen)} />
+
       {/* Right Section: Second list of links */}
       <ul className="secondaryNavLinks">
         { secondaryNavLinks.map((link, index) => (
@@ -66,6 +72,18 @@ export default function Navigation() {
         ))}
       </ul>
     </nav>
+
+    {/* Conditionally render the search bar if is true */}
+    {searchOpen && (
+      <div className="search-bar">
+        <input
+        type="text"
+        placeholder="Search.."
+        className="search-input"
+        style={{ marginTop: "10px", padding: "5px", width: "200px" }}
+        />
+        </div>
+    )}
     </div>
   );
 }
