@@ -1,6 +1,6 @@
 import React, {useState} from "react";
 import { Link } from "react-router-dom";
-import { SearchOutline } from "react-ionicons";
+import { SearchOutline, MenuOutline } from "react-ionicons";
 
 const primaryNavLinks = [
   {
@@ -38,6 +38,7 @@ const secondaryNavLinks = [
 
 export default function Navigation() {
   const [searchOpen, setSearchOpen] = useState(false)
+  const [menuActive, setMenuActive] = useState(false)
 
   return (
     <div className="nav">
@@ -45,7 +46,7 @@ export default function Navigation() {
       <span className="menu-title"></span>
 
       {/* Left section: First list of links */}
-      <ul className="primaryNavLinks">
+      <ul className={`primaryNavLinks ${menuActive ? "active" : " " }`}>
         { primaryNavLinks.map((link, index) => (
           <li key={index}>
             <Link to={link.path}>{link.title}</Link>
@@ -66,13 +67,18 @@ export default function Navigation() {
           onClick={() => setSearchOpen(!searchOpen)} />
 
       {/* Right Section: Second list of links */}
-      <ul className="secondaryNavLinks">
+      <ul className={`secondaryNavLinks ${menuActive ? "active" : ""}`}>
         { secondaryNavLinks.map((link, index) => (
           <li key={index}>
             <Link to={link.path}>{link.title}</Link>
           </li>
         ))}
       </ul>
+      <MenuOutline
+        className="menu-icon"
+        style={{ cursor: "pointer" }}
+       onClick={() => setMenuActive(!menuActive)}
+      />
       </div>
     </nav>
 
