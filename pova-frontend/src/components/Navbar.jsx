@@ -56,8 +56,10 @@ export default function Navigation() {
       {/* center section: logo */}
       <span className="logo-brand">POVA</span>
 
+        <div className="right-section">
         {/* Search icon */}
         <SearchOutline
+          className="icon"
           height="20px"
           width="20px"
           style={{ cursor: "pointer" }}
@@ -71,6 +73,7 @@ export default function Navigation() {
           </li>
         ))}
       </ul>
+      </div>
     </nav>
 
     {/* Conditionally render the search bar if is true */}
@@ -78,7 +81,7 @@ export default function Navigation() {
       <div className="search-bar">
         <input
         type="text"
-        placeholder="Search.."
+        placeholder="search..."
         className="search-input"
         style={{ marginTop: "10px", padding: "5px", width: "200px" }}
         />
