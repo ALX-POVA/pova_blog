@@ -29,6 +29,13 @@
     margin-left: 0;
     margin-right: 0;
     /* margin-top: 20px; */
+
+    .menu-icon {
+      font-size: 36px;
+      align-items: center;
+      width: 65px;
+      display: none;
+    }
   }
 
   ul {
@@ -55,17 +62,20 @@
   .right-section {
     display: flex;
     align-items: center;
+
   }
 
   .icon {
     margin-right: 20px;
+
+    .icon:hover {
+      color: $text-link;
+      transition: color 0.3s ease;
+    }
+  
   }
 
-  .icon:hover {
-    color: $text-link;
-    transition: color 0.3s ease;
-  }
-
+  
   /* Style for the second <ul> (right side) */
   .secondaryNavLinks {
     display: flex;
@@ -101,5 +111,23 @@
     /* height: auto; */
     margin-top: 20px;
     margin-block-end: 20px;
+  }
+}
+
+
+@media screen and (max-width: 900px) {
+  .site-navigation {
+    /* Hide the primary and secondary links on small screens */
+    .primaryNavLinks,
+    .secondaryNavLinks {
+      display: none;
+    }
+
+    /* Show the menu icon when screen width is less than 900px */
+    .menu-title {
+      .menu-icon {
+        display: flex;
+      }
+    }
   }
 }
