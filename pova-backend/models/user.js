@@ -11,7 +11,7 @@ const userSchema = Joi.object({
     'string.base': 'Full name must be a string',
     'string.min': 'Full name should have a minimum length of 3',
     'string.max': 'Full name should have a maximum length of 60',
-    'any.required': 'Missing FullName field',
+    'any.required': 'Missing fullName field',
   }),
   email: Joi.string().email().required().messages({
     'string.email': 'Invalid email format',
@@ -19,7 +19,7 @@ const userSchema = Joi.object({
   }),
   password: Joi.string().min(8).required().messages({
     'string.min': 'Password should have a minimum length of 8',
-    'any.required': 'Missing password'
+    'any.required': 'Missing password field'
   }),
 });
 

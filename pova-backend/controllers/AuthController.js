@@ -16,7 +16,8 @@ class AuthController{
         // Add inserted id to the request payload as response
         userData.id = result;
         delete userData._id;
-        return res.status(200).json(userData);
+        userData.message = "user creation successful";
+        return res.status(201).json(userData);
     }
 
 
