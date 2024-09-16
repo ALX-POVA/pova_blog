@@ -8,7 +8,7 @@ const blogPostSchema = joi.object().keys({
     authorId: joi.string().required(),
     title: joi.string().required(),
     content: joi.string().required(),
-    category: joi.string().optional(),
+    category: joi.string().required(),
     tags: joi.array().optional()
 });
 
@@ -24,7 +24,7 @@ const addPost = async (blogData) => {
 
     try {
         // Convert authorId to ObjectId
-        blogData.authorId = ObjectId(blogData.authorId);
+        blogData.authorId = new ObjectId(blogData.authorId);
 
         const result = await blogs.insertOne(blogData);
         return result.insertedId.toString();
@@ -77,7 +77,8 @@ const deletePost = async (articleId) => {
 const getDrafts = async (authorId) => {
     try {
         // Convert authorId to ObjectId
-        const drafts = await blogs.find({ authorId: new ObjectId(authorId), published: false }).toArray();
+        const drafts = await blogs.find({ authorId: new ObjectId(authorId), published: false })
+        .toArray();
         return drafts;
     } catch (err) {
         console.error('Error getting drafts:', err);
