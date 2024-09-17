@@ -6,13 +6,13 @@ import { ObjectId } from 'mongodb';
 class UserController{
     static async fetchMe(req, res){
         
-        // fetchs verifies logged in user
+        // fetches verifies logged in user
         const userId = await authorizeUser(req, res);
 
         if (typeof userId !== 'string') return;
 
         const payload = await getUser({_id: new ObjectId(userId)});
-        if (!payload) return res.sendStatus(404);
+        if (!payload) return res.status(404).json({error: "user not found"});
         payload.id = payload._id;
         delete payload._id
         delete payload.password;

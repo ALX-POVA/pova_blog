@@ -6,6 +6,24 @@ import { authorizeUser } from "../middlewares/tokenAuth.js";
 
 
 class BlogPostController{
+
+    static async getPopularPosts(req, res) {
+        try {
+            // Fetch posts sorted by views in descending order
+            const popularPosts = await db.collection('BlogPosts')
+            .find()
+            .sort({ views: -1 })  // Sort by 'views' in descending order
+            .limit(10)            // Limit to top 10 posts
+            .toArray();
+            
+            // Return the sorted posts
+            return res.status(200).json(popularPosts);
+        } catch (err) {
+            console.error(err);
+            return res.status(500).json({ message: "An error occurred while fetching popular posts." });
+        }
+    }
+
     static async fetchUserPosts(req, res){
         const userId = req.params.userId;
         try{
@@ -41,6 +59,9 @@ class BlogPostController{
 
         const post = await getPost(postId);
         if (!post) return res.status(404).json({error: "Post not found"});
+        await db.collection('BlogPosts').updateOne(
+            { _id: new ObjectId(postId)},
+            { $inc: { views: 1 } });
         return res.status(200).json(post);
     }
 
@@ -83,7 +104,7 @@ class BlogPostController{
 
         const post = await getPost(postId);
         if (post === null) return res.status(404).json({error: "Post not found"});
-        if (post.authorId !== userId) return res.status(401).json({error: "Unauthorized"});
+        if (post.authorId.toString() !== userId) return res.status(401).json({error: "Unauthorized"});
         const update = await updatePost(postId, req.body);
         
         if (update === null) return res.status(500).json({error: "Post upload unsuccessful"});
@@ -143,11 +164,14 @@ class BlogPostController{
         if (typeof userId !== 'string') return res.sendStatus(401);
 
         let post = await getPost(postId);
+        let result;
         if (post === null){
           post = req.body;
-          const result = await addPost(post);  
+          if (!post.published) post.published = true;
+            result = await addPost(post);
         }
         if (post.authorId !== userId) return res.sendStatus(401);
+        result = await db.collection('BlogPost');
     }
 }
 

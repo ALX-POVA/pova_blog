@@ -16,7 +16,7 @@ async function authorizeUser(req, res){
 
     if (!token) return res.status(401).json({error: "Unauthorized"});
     return await jwt.verify(token, accessSecret, (err, user) => {
-        if (err) return res.status(403).json({error: "Forbidden"});
+        if (err) return res.status(403).json({error: "Forbidden, token expired"});
         return user.identity;
     });
 }

@@ -9,7 +9,9 @@ const blogPostSchema = joi.object().keys({
     title: joi.string().required(),
     content: joi.string().required(),
     category: joi.string().required(),
-    tags: joi.array().optional()
+    tags: joi.array().optional(),
+    views: joi.number().default(0),
+    published: joi.bool().default(false)
 });
 
 /**
