@@ -72,30 +72,50 @@ class CommentController {
         }
     }
 
-    static async deleteComment(req, res){
-        // gets and verify user
+    static async deleteComment(req, res) {
+        // Get and verify user
         const userId = await authorizeUser(req, res);
         if (typeof userId !== 'string') return;
-
-        try{
-            // checks if post exists
+    
+        try {
+            // Check if post exists
             const postId = req.params.postId;
-            const commentId = req.params.commentId
-            const post = await getPost(postId);
-            const user = await getUser({_id: new ObjectId(userId)});
-            if (!user || post.authorId.toString() !== userId){
-                return res.status(401).json({error: "Unauthorized"});
+            const commentId = req.params.commentId;
+    
+            // Find the post with the comment
+            const postWithComment = await db.collection('BlogPosts').findOne(
+                { _id: new ObjectId(postId), "comments._id": new ObjectId(commentId) },
+                { projection: { "comments.$": 1 } }
+            );
+    
+            if (!postWithComment) {
+                return res.status(404).json({ error: "Post or comment not found" });
             }
-            // 
-            await db.collection('BlogPosts')
-            .updateOne({_id: new ObjectId(postId)}, {
-                $pull: {comments: new ObjectId(commentId)}
-            });
-        } catch (err){
+    
+            const comment = postWithComment.comments[0];
+    
+            // Check if the comment author matches the logged-in user
+            if (comment.authorId.toString() !== userId) {
+                return res.status(401).json({ error: "Unauthorized" });
+            }
+    
+            // Delete the comment from the post's comments array
+            const result = await db.collection('BlogPosts').updateOne(
+                { _id: new ObjectId(postId) },
+                { $pull: { comments: { _id: new ObjectId(commentId) } } }
+            );
+    
+            if (result.modifiedCount === 0) {
+                return res.status(500).json({ error: "Failed to delete comment" });
+            }
+    
+            return res.sendStatus(204);
+        } catch (err) {
             console.error(err);
-            return res.status(500).json({error: "Internal server Error"});
+            return res.status(500).json({ error: "Internal server error" });
         }
     }
+    
 }
 
 export default CommentController;
