@@ -57,6 +57,7 @@ const addUser = async (userData) => {
       return {error: "User already exists"};
     }
     userData.password = bcrypt.hashSync(userData.password, 10);
+    userData.createdAt = new Date();
     const result = await users.insertOne(userData);
     delete userData.password;
     return result.insertedId.toString();
@@ -106,6 +107,7 @@ const updateUser = async (userId, update) => {
     if ('password' in update){
       update.password = bcrypt.hashSync(update.password, 10);
     }
+    update.updatedAt = new Date();
     const result = await users.updateOne(
       { _id: new ObjectId(userId) },
       { $set: update }

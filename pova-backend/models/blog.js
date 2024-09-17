@@ -27,6 +27,7 @@ const addPost = async (blogData) => {
     try {
         // Convert authorId to ObjectId
         blogData.authorId = new ObjectId(blogData.authorId);
+        blogData.createdAt = new Date();
 
         const result = await blogs.insertOne(blogData);
         return result.insertedId.toString();
@@ -102,6 +103,7 @@ const updatePost = async (articleId, update) => {
         if (!article) return null;  // Article not found
 
         // Update the article's data
+        update.updateAt = Date()
         const result = await blogs.updateOne(
             { _id: new ObjectId(articleId) },  // Filter by article ID
             { $set: update }  // Set the updated fields

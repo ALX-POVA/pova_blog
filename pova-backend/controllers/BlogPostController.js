@@ -49,7 +49,7 @@ class BlogPostController{
 
         if (typeof userId !== 'string') return;
 
-        const drafts = getDrafts(session.user);
+        const drafts = getDrafts(userId);
         if (drafts === null) return res.sendStatus(500);
         return res.status(200).json(drafts);
     }
