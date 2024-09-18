@@ -1,5 +1,5 @@
 .nav {
-  background: #E3F9E5;
+  background: #e3f9e5;
 }
 
 .site-navigation {
@@ -62,7 +62,6 @@
   .right-section {
     display: flex;
     align-items: center;
-
   }
 
   .icon {
@@ -72,10 +71,8 @@
       color: $text-link;
       transition: color 0.3s ease;
     }
-  
   }
 
-  
   /* Style for the second <ul> (right side) */
   .secondaryNavLinks {
     display: flex;
@@ -113,7 +110,6 @@
     margin-block-end: 20px;
   }
 }
-
 
 @media screen and (max-width: 900px) {
   .site-navigation {
