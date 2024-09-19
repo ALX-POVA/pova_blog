@@ -171,7 +171,7 @@ paths:
         '401':
           description: Unauthorized user
   # user blog posts operation endpoints
-  /articles:
+  /posts:
     parameters:
       - name: page
         in: query
@@ -188,7 +188,7 @@ paths:
           type: integer
           default: 10
     get:
-      description: retrives articles based on users specified profiled interest
+      description: retrives posts based on users specified profiled interest
       responses:
         '200':
           description: Ok
@@ -196,7 +196,7 @@ paths:
             application/json:
               schema:
                 properties:
-                  articles:
+                  posts:
                     type: array
                     items:
                       $ref: '#/components/schemas/Article'
@@ -220,7 +220,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-  /articles/popular:
+  /posts/popular:
     parameters:
       - name: page
         in: query
@@ -237,7 +237,7 @@ paths:
           type: integer
           default: 10
     get:
-      summary: Get popular articles
+      summary: Get popular posts
       responses:
         '200':
           description: Successful operation
@@ -247,10 +247,10 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/Article'
-  /articles/search:
+  /posts/search:
     description: Artticle search endpoint
     get:
-      summary: Search for articles
+      summary: Search for posts
       parameters:
         - name: query
           in: query
@@ -272,16 +272,16 @@ paths:
             type: string
       responses:
         '200':
-          description: List of articles matching the search
+          description: List of posts matching the search
           content:
             application/json:
               schema:
                 type: array
                 items:
                   $ref: '#/components/schemas/Article'
-  '/articles/{articleId}':
+  /posts/{postId}:
     parameters:
-      - name: articleId
+      - name: postId
         in: path
         required: true
         schema:
@@ -301,9 +301,9 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-  '/articles/{articleId}/edit':
+  '/posts/{postId}/edit':
     parameters:
-      - name: articleId
+      - name: postId
         required: true
         in: path
         schema:
@@ -324,10 +324,10 @@ paths:
                 $ref: '#/components/schemas/Article'
         '401':
           description: unauthorized error
-  '/articles/{articleId}/like':
+  '/posts/{postId}/like':
     description: Article like endpoint
     parameters:
-      - name: articleId
+      - name: postId
         schema:
           type: string
         description: article id to like
@@ -337,24 +337,17 @@ paths:
       responses:
         '200':
           description: Successful operation
-  '/articles/{articleId}/unlike':
-    description: Article unlike endpoint
-    parameters:
-      - name: articleId
-        schema:
-          type: string
-        description: article id to unlike
-        required: true
-        in: path
+
     delete:
       responses:
         '204':
-          description: Successful operation
-  '/articles/{articleId}/comment':
+          description: Unlike sucess
+
+  /posts/{postId}/comments:
     post:
       summary: Post a comment on an article
       parameters:
-        - name: articleId
+        - name: postId
           in: path
           required: true
           schema:
@@ -376,10 +369,10 @@ paths:
           description: Comment posted successfully
         '404':
           description: Article not found
-  '/articles/{articleId}/comments/{commentId}/like':
+  '/posts/{postId}/comments/{commentId}/like':
     description: Article like endpoint
     parameters:
-      - name: articleId
+      - name: postId
         schema:
           type: string
         description: article id to like
@@ -394,28 +387,14 @@ paths:
       responses:
         '200':
           description: Successful operation
-  '/articles/{articleId}/{commentId}/unlike':
-    description: Article unlike endpoint
-    parameters:
-      - name: articleId
-        schema:
-          type: string
-        description: article id to unlike
-        required: true
-        in: path
-      - name: commentId
-        schema:
-          type: string
-        required: true
-        in: path
     delete:
-      responses:
-        '204':
-          description: Successful operation
-  '/articles/{articleId}/comments/{commentId}':
+        responses:
+          '204':
+            description: Unlike sucessfull
+  '/posts/{postId}/comments/{commentId}':
     description: ''
     parameters:
-      - name: articleId
+      - name: postId
         schema:
           type: string
         description: article id to unlike
@@ -525,7 +504,7 @@ components:
       required:
         - content
         - authorId
-        - articleId
+        - postId
       properties:
         id:
           type: string
@@ -533,7 +512,7 @@ components:
           type: string
         content:
           type: string
-        articleId:
+        postId:
           type: string
     Error:
       description: Error objects

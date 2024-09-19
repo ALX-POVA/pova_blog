@@ -3,6 +3,7 @@ import { addPost, getPost, updatePost, deletePost, getDrafts } from "../models/b
 import {db} from '../config/db.js'
 import { ObjectId } from "mongodb";
 import { authorizeUser } from "../middlewares/tokenAuth.js";
+import { getUser } from "../models/user.js";
 
 
 class BlogPostController{
@@ -64,12 +65,15 @@ class BlogPostController{
             { $inc: { views: 1 } });
         return res.status(200).json(post);
     }
-
     /**
-     * creates a new post object
-     * @param {object} req 
-     * @param {object} res 
-     * @returns response
+     * Updates a post's data after verifying the user's authorization.
+     * Retrieves the post by ID and checks if the current user is the author.
+     * If the post is not found, returns a 404 error response.
+     * If the user is unauthorized, returns a 401 error response.
+     * If the update is successful, returns a 200 status response with the updated post.
+     * 
+     * @param {object} req - The request object containing the post ID in params and the updated post data in the body.
+     * @param {object} res - The response object to send back the result or error.
      */
     static async createPost (req, res){
         // checks if current user is logged in
@@ -90,10 +94,14 @@ class BlogPostController{
     }
 
     /**
-     * Updates data of a post
-     * @param {req} req - request object
-     * @param {object} res - response object
-     * @returns 
+     * Updates a post's data after verifying the user's authorization.
+     * Retrieves the post by ID and checks if the current user is the author.
+     * If the post is not found, returns a 404 error response.
+     * If the user is unauthorized, returns a 401 error response.
+     * If the update is successful, returns a 200 status response with the updated post.
+     * 
+     * @param {object} req - The request object containing the post ID in params and the updated post data in the body.
+     * @param {object} res - The response object to send back the result or error.
      */
     static async updatePostData(req, res){
         // Checks if user current is logged in
@@ -112,10 +120,14 @@ class BlogPostController{
     }
 
     /**
-     * deletes a post by its Id
-     * @param {object} req 
-     * @param {object} res 
-     * @returns response
+     * Deletes a post after verifying the user's authorization.
+     * Retrieves the post by ID and checks if the current user is the author.
+     * If the post is not found, returns a 404 error response.
+     * If the user is unauthorized, returns a 401 error response.
+     * If the deletion is successful, returns a 204 status response.
+     * 
+     * @param {object} req - The request object containing the post ID in params.
+     * @param {object} res - The response object to send back the result or error.
      */
     static async delPost(req, res){
         // Checks if user current is logged in
@@ -135,10 +147,12 @@ class BlogPostController{
     }
 
     /**
-     * searches a blog post by category
-     * @param {object} req - request obejct
-     * @param {object} res - response object
-     * @returns - response
+     * Searches for posts based on a specified category.
+     * Retrieves the category from the request query and queries the database for posts with the matching category.
+     * Returns a JSON response with the found posts if successful, otherwise handles errors.
+     * 
+     * @param {object} req - The request object containing the category in the query.
+     * @param {object} res - The response object to send back the found posts or error.
      */
     static async searchPostByCategory(req, res){
         // gets query value
@@ -157,6 +171,14 @@ class BlogPostController{
         }
     }
 
+    /**
+     * Publishes a blog post by checking authorization of the user, retrieving the post by ID,
+     * and adding the post to the database if it doesn't exist. 
+     * If the post exists, updates the post if the author matches the current user.
+     * 
+     * @param {object} req - The request object containing the post ID and post data.
+     * @param {object} res - The response object to send back the result or error.
+     */
     static async publishPost(req, res){
         const postId = req.postId;
 
@@ -172,6 +194,50 @@ class BlogPostController{
         }
         if (post.authorId !== userId) return res.sendStatus(401);
         result = await db.collection('BlogPost');
+    }
+
+    /**
+     * Likes a specific post by adding the user's ID to the post's 'likes' array.
+     * Retrieves the user's ID through authorization, then checks and fetches the user.
+     * If the user is not found, returns an error response.
+     * If the like action is unsuccessful, returns an error response.
+     * @param {object} req - The request object containing the post ID in params.
+     * @param {object} res - The response object to send back the result or error.
+     */
+    static async likePost(req, res){
+        // gets and authenticates user
+        const userId = await authorizeUser(req, res);
+
+        if (typeof userId !== 'string') return;
+        const postId = req.params.postId;
+        const user = await getUser({_id: new ObjectId(userId)});
+        if (!user) return res.status(404).json({error: "user not found"});
+
+        const result = await db.collection('BlogPosts').updateOne({_id: new ObjectId(postId)}, 
+        {$push: {likes: new ObjectId(userId)} });
+        if (result.modifiedCount == 0) return res.status(500).json({error: "Like action unsucessful"});
+    }
+    /**
+     * Unlike a post by removing the user's ID from the post's 'likes' array.
+     * Retrieves the user's ID through authorization, then checks and fetches the user.
+     * If the user is not found, returns an error response.
+     * If the unlike action is unsuccessful, returns an error response.
+     * 
+     * @param {object} req - The request object containing the post ID in params.
+     * @param {object} res - The response object to send back the result or error.
+     */
+    static async unlikePost(req, res){
+        const userId = await authorizeUser(req, res);
+
+        if (typeof userId !== 'string') return;
+        const postId = req.params.postId
+        const user = await getUser({_id: new ObjectId(userId)});
+        if (!user) return res.status(404).json({error: "user not found"});
+
+        const result = await db.collection('BlogPosts').updateOne({_id: new ObjectId(postId)}, 
+        {$pull: {likes: new ObjectId(userId)} });
+        if (result.modifiedCount == 0) return res.status(500).json({error: "Like action unsucessful"});
+
     }
 }
 
