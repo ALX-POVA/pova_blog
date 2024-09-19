@@ -1,3 +1,9 @@
+$brand-color: #FFA500;
+
+.text-background {
+    background-color: $brand-color;
+}
+
 .home-wrapper {
     display: flex;
     flex-direction: column;
