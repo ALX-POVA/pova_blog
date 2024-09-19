@@ -5,7 +5,8 @@ import CardCover from '@mui/joy/CardCover';
 import CardContent from '@mui/joy/CardContent';
 import Typography from '@mui/joy/Typography';
 import Stack from '@mui/system/Stack'; // Importing MUI components
-import VerticalSlider from '../components/VerticalSlider';
+import ButtonIcons from '../components/Button.jsx';
+import VerticalSlider from '../components/VerticalSlider.jsx';
 
 
 function Home() {
@@ -41,12 +42,13 @@ function Home() {
           </div>
         </Stack>
       </div>
-    </div>
 
-    {/* more on blog writes */}
+      {/* more on blog writes */}
     <div className="write a blog">
       <ButtonIcons />
     </div>
+
+  </div>
   );
 }
 
