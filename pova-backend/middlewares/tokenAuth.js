@@ -10,14 +10,20 @@ function generateToken(identity, expiration){
     return token;
 }
 
-async function authorizeUser(req, res){
+async function authorizeUser(req, res, next) {
     const authHeader = req.headers.authorization;
     const token = authHeader && authHeader.split(' ')[1];
 
-    if (!token) return res.status(401).json({error: "Unauthorized"});
-    return await jwt.verify(token, accessSecret, (err, user) => {
-        if (err) return res.status(403).json({error: "Forbidden, token expired"});
-        return user.identity;
+    if (!token) {
+        return res.status(401).json({ error: "Unauthorized" });
+    }
+
+    await jwt.verify(token, accessSecret, (err, user) => {
+        if (err) {
+            return res.status(403).json({ error: "Forbidden, token expired" });
+        }
+        req.currentUserId = user.identity;  // Attach user data to request
+        if (next) next();  // Pass control to the next middleware or route handler
     });
 }
 
