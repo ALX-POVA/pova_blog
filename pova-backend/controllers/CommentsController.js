@@ -2,8 +2,7 @@
 
 import { db } from '../config/db.js';
 import { getPost } from '../models/blog.js';
-import { getUser } from '../models/user.js'; // Assuming you have a getUser function
-import { authorizeUser } from '../middlewares/tokenAuth.js';
+import { getUser } from '../models/user.js';
 import { ObjectId } from 'mongodb';
 import Joi from 'joi';
 
@@ -24,7 +23,7 @@ class CommentController {
 
     static async postComment(req, res) {
         // Check if user is logged in
-        const userId = await authorizeUser(req, res);
+        const userId = req.currentUserId;
         const postId = req.params.postId;
 
         if (typeof userId !== 'string') return;
@@ -74,7 +73,7 @@ class CommentController {
 
     static async deleteComment(req, res) {
         // Get and verify user
-        const userId = await authorizeUser(req, res);
+        const userId = req.currentUserId;
         if (typeof userId !== 'string') return;
     
         try {

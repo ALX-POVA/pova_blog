@@ -2,7 +2,6 @@
 import { addPost, getPost, updatePost, deletePost, getDrafts } from "../models/blog.js";
 import {db} from '../config/db.js'
 import { ObjectId } from "mongodb";
-import { authorizeUser } from "../middlewares/tokenAuth.js";
 import { getUser } from "../models/user.js";
 
 
@@ -26,7 +25,7 @@ class BlogPostController{
     }
 
     static async fetchUserPosts(req, res){
-        const userId = req.params.userId;
+        const userId = req.params.userId || req.currentUserId;
         try{
             const posts = await db.collection("BlogPosts")
             .find({authorId: new ObjectId(userId)})
@@ -46,7 +45,7 @@ class BlogPostController{
      */
     static async fetchMydrafts(req, res){
         // Check authorized user
-        const userId = await authorizeUser(req, res);
+        const userId = req.currentUserId;
 
         if (typeof userId !== 'string') return;
 
@@ -77,7 +76,7 @@ class BlogPostController{
      */
     static async createPost (req, res){
         // checks if current user is logged in
-        const userId = await authorizeUser(req, res);
+        const userId = req.currentUserId;
         if (typeof userId !== 'string') return;
 
         const postData = req.body;
@@ -105,7 +104,7 @@ class BlogPostController{
      */
     static async updatePostData(req, res){
         // Checks if user current is logged in
-        const userId = await authorizeUser(req, res);
+        const userId = req.currentUserId;
         if (typeof userId !== 'string') return;
 
         const postId = req.params.postId;
@@ -131,7 +130,7 @@ class BlogPostController{
      */
     static async delPost(req, res){
         // Checks if user current is logged in
-        const userId = await authorizeUser(req, res);
+        const userId = req.currentUserId;
         if (typeof userId !== 'string') return;
 
         const postId = req.params.postId;
@@ -182,7 +181,7 @@ class BlogPostController{
     static async publishPost(req, res){
         const postId = req.postId;
 
-        const userId = await authorizeUser(req, res);
+        const userId = req.currentUserId;
         if (typeof userId !== 'string') return res.sendStatus(401);
 
         let post = await getPost(postId);
@@ -196,6 +195,26 @@ class BlogPostController{
         result = await db.collection('BlogPost');
     }
 
+    static async unPublishPost(req, res){
+        const {postId, currentUserId} = req;
+
+        const post = await getPost(postId);
+        if (post === null) return res.status(404).json({error: "Post not found"});
+        if (post.authorId.toString() !== currentUserId){
+            return res.status(401).json({error: "Unauthorized", message: "User can't modify post"});
+        }
+        const result = await db.collection('BlogPosts')
+        .updateOne({_id: new ObjectId(postId), 
+            $set: {published: false}
+        })
+
+        if (result.modifiedCount === 0){
+            return res.status(500).json({error: "Post unpublish failed"});
+        }
+
+        return res.status(200).json({message: "Post unpublish successful"})
+    }
+
     /**
      * Likes a specific post by adding the user's ID to the post's 'likes' array.
      * Retrieves the user's ID through authorization, then checks and fetches the user.
@@ -206,7 +225,7 @@ class BlogPostController{
      */
     static async likePost(req, res){
         // gets and authenticates user
-        const userId = await authorizeUser(req, res);
+        const userId = req.currentUserId;
 
         if (typeof userId !== 'string') return;
         const postId = req.params.postId;
@@ -216,6 +235,7 @@ class BlogPostController{
         const result = await db.collection('BlogPosts').updateOne({_id: new ObjectId(postId)}, 
         {$push: {likes: new ObjectId(userId)} });
         if (result.modifiedCount == 0) return res.status(500).json({error: "Like action unsucessful"});
+        return res.status(201).json({message: "Post liked successfulled"});
     }
     /**
      * Unlike a post by removing the user's ID from the post's 'likes' array.
@@ -227,16 +247,17 @@ class BlogPostController{
      * @param {object} res - The response object to send back the result or error.
      */
     static async unlikePost(req, res){
-        const userId = await authorizeUser(req, res);
+        const userId = req.currentUserId;
 
         if (typeof userId !== 'string') return;
         const postId = req.params.postId
         const user = await getUser({_id: new ObjectId(userId)});
         if (!user) return res.status(404).json({error: "user not found"});
 
-        const result = await db.collection('BlogPosts').updateOne({_id: new ObjectId(postId)}, 
+        const result = await db.collection('BlogPosts').updateOne({_id: new ObjectId(postId)},
         {$pull: {likes: new ObjectId(userId)} });
         if (result.modifiedCount == 0) return res.status(500).json({error: "Like action unsucessful"});
+        return res.status(204).json({message: "unliked liked successfulled"});
 
     }
 }
