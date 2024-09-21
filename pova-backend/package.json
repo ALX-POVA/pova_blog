@@ -8,9 +8,9 @@
     "lint": "./node_modules/.bin/eslint",
     "test": "mocha",
     "start-devserver": "nodemon --exec babel-node server.js",
-    "start": "node dist/server.js",
+    "start": "node prod_server.js",
     "dev": "nodemon --exec babel-node",
-    "build": "babel server.js -d dist"
+    "build": "babel server.js -o prod_server.js"
   },
   "keywords": [],
   "authors": [
