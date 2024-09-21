@@ -6,6 +6,16 @@ import { getUser } from "../models/user.js";
 
 
 class BlogPostController{
+  /**
+  * Retrieves popular posts sorted by views in descending order with pagination.
+  * Fetches posts from the 'BlogPosts' collection that are published.
+  * Supports pagination based on the provided page and limit parameters.
+  * Returns a JSON response with the sorted posts or an error message.
+  * 
+  * @param {object} req - The request object containing query parameters for page and limit.
+  * @param {object} res - The response object to send back the sorted posts or an error message.
+  * @returns {object} JSON response with popular posts or an error message.
+  */
   static async getPopularPosts(req, res) {
     try {
       const page = parseInt(req.query.page) || 1;
