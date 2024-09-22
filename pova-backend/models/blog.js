@@ -103,7 +103,7 @@ const updatePost = async (articleId, update) => {
         if (!article) return null;  // Article not found
 
         // Update the article's data
-        update.updateAt = Date()
+        update.updateAt = new Date()
         const result = await blogs.updateOne(
             { _id: new ObjectId(articleId) },  // Filter by article ID
             { $set: update }  // Set the updated fields

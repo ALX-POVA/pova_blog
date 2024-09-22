@@ -20,8 +20,9 @@ info:
     name: Apache 2.0
     url: 'http://www.apache.org/licenses/LICENSE-2.0.html'
   version: 1.0.0
-# servers:
-#   - url: will be provided
+servers:
+   - url: https://pova-blog.onrender.com/api/v1
+
 # Applicationn endpoints
 paths:
   # User paths and auths
@@ -264,12 +265,6 @@ paths:
           required: false
           schema:
             type: string
-        - name: tag
-          in: query
-          description: Filter by tag
-          required: false
-          schema:
-            type: string
       responses:
         '200':
           description: List of posts matching the search
@@ -301,13 +296,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-  '/posts/{postId}/edit':
-    parameters:
-      - name: postId
-        required: true
-        in: path
-        schema:
-          type: string
     put:
       description: update article
       requestBody:
@@ -324,6 +312,12 @@ paths:
                 $ref: '#/components/schemas/Article'
         '401':
           description: unauthorized error
+    delete:
+      description: An authorized user/author deletes a post
+      responses:
+        204:
+          description: no content
+
   '/posts/{postId}/like':
     description: Article like endpoint
     parameters:

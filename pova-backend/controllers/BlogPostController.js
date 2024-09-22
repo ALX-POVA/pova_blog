@@ -203,20 +203,23 @@ class BlogPostController{
    * @param {object} res - The response object to send back the result or error.
    */
   static async publishPost(req, res){
-      const postId = req.postId;
+    const postId = req.postId;
 
-      const userId = req.currentUserId;
-      if (typeof userId !== 'string') return res.sendStatus(401);
+    const userId = req.currentUserId;
+    if (typeof userId !== 'string') return res.sendStatus(401);
 
-      let post = await getPost(postId);
-      let result;
-      if (post === null){
-        post = req.body;
-        if (!post.published) post.published = true;
-          result = await addPost(post);
-      }
-      if (post.authorId !== userId) return res.sendStatus(401);
-      result = await db.collection('BlogPost');
+    let post = await getPost(postId);
+    let result;
+    if (post === null){
+      post = req.body;
+      if (!post.published) post.published = true;
+      result = await addPost(post);
+    }
+    if (post.authorId.toString() !== userId) return res.sendStatus(401);
+    result = await db.collection('BlogPost')
+    .updateOne({_id: new ObjectId(postId),
+      $set: {published: true}
+    });
   }
 
   static async unPublishPost(req, res){

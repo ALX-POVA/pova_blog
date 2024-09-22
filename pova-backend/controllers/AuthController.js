@@ -59,4 +59,3 @@ class AuthController{
     }
 }
 export default AuthController;
-export {jwt};
