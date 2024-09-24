@@ -1,8 +1,8 @@
 // controllers/CommentController.js
 
 import { db } from '../config/db.js';
-import { getPost } from '../models/blog.js';
-import { getUser } from '../models/user.js';
+import BlogModel from '../models/blog.js';
+import UserModel from '../models/user.js';
 import { ObjectId } from 'mongodb';
 import Joi from 'joi';
 
@@ -30,11 +30,11 @@ class CommentController {
 
         try {
             // Check if user exists
-            const user = await getUser({ _id: new ObjectId(userId) });
+            const user = await UserModel.getuser({ _id: new ObjectId(userId) });
             if (!user) return res.status(401).json({ error: "User not found" });
 
             // Check if post exists
-            const post = await getPost(postId);
+            const post = await BlogModel.getPost(postId);
             if (!post) return res.status(404).json({ error: "Post not found" });
 
             // Validate comment data

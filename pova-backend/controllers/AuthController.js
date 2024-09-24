@@ -1,4 +1,4 @@
-import { addUser, getUser } from "../models/user.js";
+import userModel from "../models/user.js";
 import Joi from "joi";
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
@@ -8,7 +8,7 @@ class AuthController{
     static async registerUser(req, res) {
         // Extracts user data from request body
         const userData = req.body;
-        const result = await addUser(userData);
+        const result = await userModel.addUser(userData);
 
         if (typeof result !== 'string'){
             return res.status(400).json(result);
@@ -34,7 +34,7 @@ class AuthController{
 
         const { email, password } = req.body;
         try {
-            const user = await getUser({ email });
+            const user = await userModel.getUser({ email });
             if (!user) {
                 return res.status(404).json({ error: "User not found" });
             }

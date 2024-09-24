@@ -1,6 +1,6 @@
 // controllers/UserController
 import { db } from '../config/db.js';
-import {getUser, updateUser, deleteUser} from '../models/user.js';
+import UserModel from '../models/user.js';
 import { ObjectId } from 'mongodb';
 import path from 'path';
 import fs from 'fs';
@@ -13,7 +13,7 @@ class UserController{
 
         if (typeof userId !== 'string') return;
 
-        const payload = await getUser({_id: new ObjectId(userId)});
+        const payload = await UserModel.getUser({_id: new ObjectId(userId)});
         if (!payload) return res.status(404).json({error: "user not found"});
         payload.id = payload._id;
         delete payload._id
@@ -25,7 +25,7 @@ class UserController{
     static async fetchUser(req, res){
         // gets user id from parameter
         const userId = req.params.userId;
-        const user = await getUser({_id: new ObjectId(userId)});
+        const user = await UserModel.getUser({_id: new ObjectId(userId)});
 
         if (!user) return res.sendStatus(404);
 
@@ -41,7 +41,7 @@ class UserController{
         const userId = req.currentUserId;
         if (typeof userId !== 'string') return;
         // updates user data from database
-        const update = await updateUser(userId, req.body);
+        const update = await UserModel.updateUser(userId, req.body);
         if(!update) return res.status(404).json({error: "user not found"})
         return res.status(200).json(update);
     }
@@ -54,7 +54,7 @@ class UserController{
         console.log("user authorized");
 
         try{
-            if (await deleteUser(userId) === null) res.sendStatus(404);
+            if (await UserModel.deleteUser(userId) === null) res.sendStatus(404);
             return res.sendStatus(204);
         } catch(err){
             console.error(err);
@@ -65,7 +65,7 @@ class UserController{
     static async uploadProfilePic(req, res) {
         const userId = req.currentUserId;
         if (typeof userId !== 'string') return;
-        const user = await getUser({_id: new ObjectId(userId)});
+        const user = await UserModel.getUser({_id: new ObjectId(userId)});
 
         if (!user) return res.status(404).json({error: "User not found"});
 

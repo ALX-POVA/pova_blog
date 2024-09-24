@@ -1,8 +1,8 @@
 // blog post controller
-import { addPost, getPost, updatePost, deletePost, getDrafts } from "../models/blog.js";
+import BlogModel  from "../models/blog.js";
 import {db} from '../config/db.js'
 import { ObjectId } from "mongodb";
-import { getUser } from "../models/user.js";
+import UserModel from "../models/user.js";
 
 
 class BlogPostController{
@@ -67,7 +67,7 @@ class BlogPostController{
 
     if (typeof userId !== 'string') return;
 
-    const drafts = getDrafts(userId);
+    const drafts = BlogModel.getDrafts(userId);
     if (drafts === null) return res.sendStatus(500);
     return res.status(200).json(drafts);
   }
@@ -75,7 +75,7 @@ class BlogPostController{
   static async fetchPost(req, res){
     const postId = req.params.postId;
 
-    const post = await getPost(postId);
+    const post = await BlogModel.getPost(postId);
     if (!post) return res.status(404).json({error: "Post not found"});
     await db.collection('BlogPosts').updateOne(
       { _id: new ObjectId(postId)},
@@ -98,7 +98,7 @@ class BlogPostController{
     if (typeof userId !== 'string') return;
 
     const postData = req.body;
-    const post = await addPost(postData);
+    const post = await BlogModel.addPost(postData);
     // checks if post is added to database
     if (post === null){
       return res.sendStatus(500);
@@ -127,10 +127,10 @@ class BlogPostController{
 
     const postId = req.params.postId;
 
-    const post = await getPost(postId);
+    const post = await BlogModel.getPost(postId);
     if (post === null) return res.status(404).json({error: "Post not found"});
     if (post.authorId.toString() !== userId) return res.status(401).json({error: "Unauthorized"});
-    const update = await updatePost(postId, req.body);
+    const update = await BlogModel.updatePost(postId, req.body);
     
     if (update === null) return res.status(500).json({error: "Post upload unsuccessful"});
     return res.status(200).json(update);
@@ -153,13 +153,13 @@ class BlogPostController{
 
     const postId = req.params.postId;
 
-    const post = await getPost(postId);
+    const post = await BlogModel.getPost(postId);
     if (post === null){
       return res.status(404).json({error: "Post not found"});
     } else if (post.authorId.toString() !== userId){
       return res.status(401).json({error: "Unauthorized user"});
     }
-    const result = await deletePost(postId);
+    const result = await BlogModel.deletePost(postId);
     return res.sendStatus(204);
   }
 
@@ -208,24 +208,23 @@ class BlogPostController{
     const userId = req.currentUserId;
     if (typeof userId !== 'string') return res.sendStatus(401);
 
-    let post = await getPost(postId);
+    let post = await BlogModel.getPost(postId);
     let result;
     if (post === null){
       post = req.body;
       if (!post.published) post.published = true;
-      result = await addPost(post);
+      result = await BlogModel.addPost(post);
     }
     if (post.authorId.toString() !== userId) return res.sendStatus(401);
-    result = await db.collection('BlogPost')
-    .updateOne({_id: new ObjectId(postId),
-      $set: {published: true}
-    });
+    result = await BlogModel.updatePost(postId, {published: true});
+    if (result === null) return res.status(500).json({error: "Post publish failed"});
+    return res.status(200).json({message: "Post published"});
   }
 
   static async unPublishPost(req, res){
     const {postId, currentUserId} = req;
 
-    const post = await getPost(postId);
+    const post = await BlogModel.getPost(postId);
     if (post === null) return res.status(404).json({error: "Post not found"});
     if (post.authorId.toString() !== currentUserId){
       return res.status(401).json({error: "Unauthorized", message: "User can't modify post"});
@@ -256,7 +255,7 @@ class BlogPostController{
 
     if (typeof userId !== 'string') return;
     const postId = req.params.postId;
-    const user = await getUser({_id: new ObjectId(userId)});
+    const user = await UserModel.getUser({_id: new ObjectId(userId)});
     if (!user) return res.status(404).json({error: "user not found"});
 
     const result = await db.collection('BlogPosts').updateOne({_id: new ObjectId(postId)}, 
@@ -278,7 +277,7 @@ class BlogPostController{
 
     if (typeof userId !== 'string') return;
     const postId = req.params.postId
-    const user = await getUser({_id: new ObjectId(userId)});
+    const user = await UserModel.getUser({_id: new ObjectId(userId)});
     if (!user) return res.status(404).json({error: "user not found"});
 
     const result = await db.collection('BlogPosts').updateOne({_id: new ObjectId(postId)},
@@ -288,6 +287,5 @@ class BlogPostController{
 
   }
 }
-
 
 export default BlogPostController;
