@@ -46,7 +46,7 @@ class UserModel{
    * @param {object} userData - user data
    * @return {string|null} - user Id
    */
-  static addUser = async (userData) => {
+  static async addUser(userData) {
     const validationError = validateUser(userData);
       if (validationError)
         return validationError;
@@ -84,7 +84,7 @@ class UserModel{
    * @param {string} userId - user reference/id
    * @returns {string|null} - userId if successful or null
    */
-  static deleteUser = async (userId) => {
+  static async deleteUser (userId) {
     try {
       const result = await users.deleteOne({ _id: new ObjectId(userId) });
       return result.deletedCount > 0 ? userId.toString() : null;
