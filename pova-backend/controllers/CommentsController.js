@@ -1,25 +1,18 @@
 // controllers/CommentController.js
 
-import { db } from "../config/db.js";
 import BlogModel from "../models/blog.js";
 import UserModel from "../models/user.js";
 import { ObjectId } from "mongodb";
-import Joi from "joi";
 
 class CommentController {
-  // Comment schema for validation
-  commentSchema = Joi.object({
-    content: Joi.string().required().messages({
-      "string.empty": "Content cannot be empty",
-    }),
-    authorId: Joi.string().required().messages({
-      "string.empty": "Author ID is required",
-    }),
-    postId: Joi.string().required().messages({
-      "string.empty": "Post ID is required",
-    }),
-  });
-
+  /**
+  * Asynchronous method to post a comment on a blog post.
+  * 
+  * @param {Object} req - The request object containing the current user ID and the post ID.
+  * @param {Object} res - The response object to send back the result or error.
+  * @returns {Object} - Returns a response status indicating the success or
+  *                     failure of the comment posting process.
+  */
   static async postComment(req, res) {
     // Check if user is logged in
     const userId = req.currentUserId;
@@ -29,7 +22,7 @@ class CommentController {
 
     try {
       // Check if user exists
-      const user = await UserModel.getuser({ _id: new ObjectId(userId) });
+      const user = await UserModel.getUser({ _id: new ObjectId(userId) });
       if (!user) return res.status(401).json({ error: "User not found" });
 
       // Check if post exists
@@ -43,8 +36,8 @@ class CommentController {
         postId,
       };
 
-      // const { error } = this.commentSchema.validate(comment);
-      // if (error) return res.status(400).json({ error: error.details[0].message });
+      if (!comment.content)
+        return res.status(400).json({error: "Comment content cannot be empty"});
 
       // Create a new comment object
       const newComment = {
@@ -55,14 +48,9 @@ class CommentController {
       };
 
       // Append new comment using MongoDB's $push
-      const result = await db
-        .collection("BlogPosts")
-        .updateOne(
-          { _id: new ObjectId(postId) },
-          { $push: { comments: newComment } }
-        );
+      const result = await BlogModel.addComment(postId, newComment);
 
-      if (result.modifiedCount > 0) {
+      if (result) {
         return res
           .status(201)
           .json({
@@ -70,7 +58,7 @@ class CommentController {
             comment: newComment,
           });
       } else {
-        return res.status(500).json({ error: "Failed to add comment" });
+        return res.status(500).json({ error: "Could not post comment" });
       }
     } catch (err) {
       console.error(err);
@@ -80,6 +68,13 @@ class CommentController {
     }
   }
 
+  /**
+   * Asynchronous method to delete a comment associated with a post.
+   * 
+   * @param {Object} req - The request object containing current user ID, post ID, and comment ID.
+   * @param {Object} res - The response object to send back the result or error.
+   * @returns {Object} - Returns a response status indicating the success or failure of the deletion process.
+   */
   static async deleteComment(req, res) {
     // Get and verify user
     const userId = req.currentUserId;
@@ -91,36 +86,14 @@ class CommentController {
       const commentId = req.params.commentId;
 
       // Find the post with the comment
-      const postWithComment = await db
-        .collection("BlogPosts")
-        .findOne(
-          {
-            _id: new ObjectId(postId),
-            "comments._id": new ObjectId(commentId),
-          },
-          { projection: { "comments.$": 1 } }
-        );
 
-      if (!postWithComment) {
-        return res.status(404).json({ error: "Post or comment not found" });
+      const result = await BlogModel.removeComment(postId, commentId);
+
+      if (result.error) {
+        return res.status(404).json(result);
       }
 
-      const comment = postWithComment.comments[0];
-
-      // Check if the comment author matches the logged-in user
-      if (comment.authorId.toString() !== userId) {
-        return res.status(401).json({ error: "Unauthorized" });
-      }
-
-      // Delete the comment from the post's comments array
-      const result = await db
-        .collection("BlogPosts")
-        .updateOne(
-          { _id: new ObjectId(postId) },
-          { $pull: { comments: { _id: new ObjectId(commentId) } } }
-        );
-
-      if (result.modifiedCount === 0) {
+      if (!result) {
         return res.status(500).json({ error: "Failed to delete comment" });
       }
 

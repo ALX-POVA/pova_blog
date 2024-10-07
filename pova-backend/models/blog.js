@@ -22,7 +22,7 @@ class BlogModel {
    */
 
   static addPost = async (blogData) => {
-    const { error } = blogPostSchema.validate(blogData);
+    const { error } = this.blogPostSchema.validate(blogData);
 
     if (error) return { error: error.details[0].message };
 
@@ -30,8 +30,9 @@ class BlogModel {
       // Convert authorId to ObjectId
       blogData.authorId = new ObjectId(blogData.authorId);
       blogData.createdAt = new Date();
+      blogData.published = Boolean(blogData.published || false);
 
-      const result = await blogs.insertOne(blogData);
+      const result = await this.blogs.insertOne(blogData);
       return result.insertedId.toString();
     } catch (err) {
       console.error("Error adding blog post:", err);
@@ -46,7 +47,7 @@ class BlogModel {
    */
   static getPost = async (articleId) => {
     try {
-      const article = await blogs.findOne({ _id: new ObjectId(articleId) });
+      const article = await this.blogs.findOne({ _id: new ObjectId(articleId) });
 
       if (!article) return null;
 
@@ -64,7 +65,7 @@ class BlogModel {
    */
   static deletePost = async (articleId) => {
     try {
-      const result = await blogs.deleteOne({ _id: new ObjectId(articleId) });
+      const result = await this.blogs.deleteOne({ _id: new ObjectId(articleId) });
 
       if (result.deletedCount) return articleId;
       return null;
@@ -82,7 +83,7 @@ class BlogModel {
   static getDrafts = async (authorId) => {
     try {
       // Convert authorId to ObjectId
-      const drafts = await blogs
+      const drafts = await this.blogs
         .find({ authorId: new ObjectId(authorId), published: false })
         .toArray();
       return drafts;
@@ -101,19 +102,20 @@ class BlogModel {
   static updatePost = async (articleId, update) => {
     try {
       // Find the article
-      const article = await blogs.findOne({ _id: new ObjectId(articleId) });
+      const article = await this.getPost(articleId);
+      console.log(article);
 
       if (!article) return null; // Article not found
 
       // Update the article's data
       update.updateAt = new Date();
-      const result = await blogs.updateOne(
+      const result = await this.blogs.updateOne(
         { _id: new ObjectId(articleId) }, // Filter by article ID
         { $set: update } // Set the updated fields
       );
 
       if (result.modifiedCount > 0) {
-        return await getPost(articleId); // Return the updated article
+        return await this.getPost(articleId); // Return the updated article
       } else {
         return null; // No changes made
       }
@@ -122,6 +124,79 @@ class BlogModel {
       return null;
     }
   };
+
+  static async getPopularPosts(skip, limit) {
+    const result = await this.blogs.find({published: true})
+    .sort({views: -1})
+    .skip(skip)
+    .limit(limit)
+    .toArray();
+
+    return result;
+  }
+
+  static async searchByCategory(category, skip, limit) {
+    const result = await this.blogs.find({published: true, category})
+    .skip(skip)
+    .limit(limit)
+    .toArray();
+
+    return result;
+  }
+
+
+  static async getUserPosts(authorId, skip, limit) {
+    const result = await this.blogs.find({authorId, published: true})
+    .skip(skip)
+    .limit(limit)
+    .toArray();
+
+    return result;
+  }
+
+  static async addLiker(postId, authorId){
+    const result = await this.blogs.updateOne(
+      {_id: new ObjectId(postId)},
+      {$addToSet: {likes: new ObjectId(authorId)}}
+    );
+
+    return result.modifiedCount > 0 ? true : false;
+  }
+
+  static async removeLiker(postId, authorId){
+    const result = await this.blogs.updateOne(
+      {_id: new ObjectId(postId)},
+      {$pull: {likes: new ObjectId(authorId)}}
+    );
+
+    return result.modifiedCount > 0 ? true : false;
+  }
+
+  static async addComment(postId, comment){
+    const result = await this.blogs.updateOne(
+      { _id: new ObjectId(postId) },
+      {$push: { comments: comment } });
+    return result.acknowledged;
+  }
+
+
+  static async removeComment(postId, commentId){
+    const postWithComment = await this.blogs.findOne(
+      { _id: new ObjectId(postId),
+        "comments._id": new ObjectId(commentId)
+      },
+      { projection: { "comments.$": 1 } }
+    );
+
+    if (!postWithComment) return { error: 'post with the comment specified not found' };
+
+    const result = await this.blogs.updateOne(
+      { _id: new ObjectId(postId) },
+      { $pull: { comments: { _id: new ObjectId(commentId) } } }
+    );
+
+    return result.acknowledged;
+  }
 }
 
 export default BlogModel;

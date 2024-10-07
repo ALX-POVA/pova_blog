@@ -52,14 +52,14 @@ class UserModel{
         return validationError;
 
     try {
-      const existingUser = await users.findOne({email: userData.email});
+      const existingUser = await this.users.findOne({email: userData.email});
 
       if (existingUser){
         return {error: "User already exists"};
       }
       userData.password = bcrypt.hashSync(userData.password, 10);
       userData.createdAt = new Date();
-      const result = await users.insertOne(userData);
+      const result = await this.users.insertOne(userData);
       delete userData.password;
       return result.insertedId.toString();
     } catch (err) {
@@ -74,7 +74,7 @@ class UserModel{
    * @returns {object|null} - The user data or null
    */
   static getUser = async (getQuery) => {
-    const user = await users.findOne(getQuery);
+    const user = await this.users.findOne(getQuery);
     if (!user) return null;
     return user;
   };
@@ -86,7 +86,7 @@ class UserModel{
    */
   static async deleteUser (userId) {
     try {
-      const result = await users.deleteOne({ _id: new ObjectId(userId) });
+      const result = await this.users.deleteOne({ _id: new ObjectId(userId) });
       return result.deletedCount > 0 ? userId.toString() : null;
     } catch (err) {
       console.error(err);
@@ -102,18 +102,18 @@ class UserModel{
    */
   static updateUser = async (userId, update) => {
     try {
-      const user = await users.findOne({ _id: new ObjectId(userId) });
+      const user = await this.users.findOne({ _id: new ObjectId(userId) });
       if (!user) return null;
 
       if ('password' in update){
         update.password = bcrypt.hashSync(update.password, 10);
       }
       update.updatedAt = new Date();
-      const result = await users.updateOne(
+      const result = await this.users.updateOne(
         { _id: new ObjectId(userId) },
         { $set: update }
       );
-      const modifiedUser = await users.findOne({ _id: new ObjectId(userId) });
+      const modifiedUser = await this.users.findOne({ _id: new ObjectId(userId) });
       delete modifiedUser.password;
       return result.modifiedCount > 0 ? modifiedUser : null;
     } catch (err) {

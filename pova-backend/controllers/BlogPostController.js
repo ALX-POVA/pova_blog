@@ -22,12 +22,7 @@ class BlogPostController{
       const limit = parseInt(req.query.limit) || 10;
       const skip = (page - 1) * limit;
       // Fetch posts sorted by views in descending order with pagination
-      const popularPosts = await db.collection('BlogPosts')
-        .find({published: true})
-        .sort({ views: -1 })  // Sort by 'views' in descending order
-        .skip(skip)           // Skip documents for pagination
-        .limit(limit)         // Limit to the specified number of posts
-        .toArray();
+      const popularPosts = await BlogModel.getPopularPosts(skip, limit);
         
       // Return the sorted posts
       return res.status(200).json(popularPosts);
@@ -43,15 +38,11 @@ class BlogPostController{
       const limit = parseInt(req.query.limit) || 10;
       const skip = (page - 1) * limit;
 
-      const posts = await db.collection("BlogPosts")
-        .find({ authorId: new ObjectId(userId), published: true })
-        .skip(skip)           // Skip documents for pagination
-        .limit(limit)         // Limit to the specified number of posts
-        .toArray();
+      const posts = await BlogModel.getUserPosts(userId, skip, limit);
       return res.status(200).json(posts);
     } catch(err){
         console.error(err);
-        return res.sendStatus(500);
+        return res.status(500).json({error: "An error occured while fetching user post"});
     }
   }
 
@@ -67,7 +58,7 @@ class BlogPostController{
 
     if (typeof userId !== 'string') return;
 
-    const drafts = BlogModel.getDrafts(userId);
+    const drafts = await BlogModel.getDrafts(userId);
     if (drafts === null) return res.sendStatus(500);
     return res.status(200).json(drafts);
   }
@@ -182,15 +173,11 @@ class BlogPostController{
     const skip = (page - 1) * limit;
 
     try{
-      const posts = await db.collection("BlogPosts")
-        .find({ category, published: true })
-        .skip(skip)           // Skip documents for pagination
-        .limit(limit)         // Limit to the specified number of posts
-        .toArray();
+      const posts = await BlogModel.searchByCategory(category, skip, limit);
       return res.status(200).json(posts);
     } catch (error){
         console.error(`Search error: ${error}`);
-        return res.sendStatus(500);
+        return res.status(500).json({error: "Error occured while searching for post"});
     }
 }
 
@@ -203,7 +190,7 @@ class BlogPostController{
    * @param {object} res - The response object to send back the result or error.
    */
   static async publishPost(req, res){
-    const postId = req.postId;
+    const postId = req.params.postId;
 
     const userId = req.currentUserId;
     if (typeof userId !== 'string') return res.sendStatus(401);
@@ -229,12 +216,9 @@ class BlogPostController{
     if (post.authorId.toString() !== currentUserId){
       return res.status(401).json({error: "Unauthorized", message: "User can't modify post"});
     }
-    const result = await db.collection('BlogPosts')
-    .updateOne({_id: new ObjectId(postId), 
-      $set: {published: false}
-    })
+    const result = await BlogModel.updatePost(postId, {published: null});
 
-    if (result.modifiedCount === 0){
+    if (result.modifiedCount === null){
       return res.status(500).json({error: "Post unpublish failed"});
     }
 
@@ -258,10 +242,9 @@ class BlogPostController{
     const user = await UserModel.getUser({_id: new ObjectId(userId)});
     if (!user) return res.status(404).json({error: "user not found"});
 
-    const result = await db.collection('BlogPosts').updateOne({_id: new ObjectId(postId)}, 
-    {$push: {likes: new ObjectId(userId)} });
-    if (result.modifiedCount == 0) return res.status(500).json({error: "Post like unsucessful"});
-    return res.status(201).json({message: "Post liked successfully"});
+    const result = await BlogModel.addLiker(postId, userId);
+    return !result ? res.status(500).json({error: "Post like unsucessful"}) :
+    res.status(201).json({message: "Post liked successfully"});
   }
   /**
    * Unlike a post by removing the user's ID from the post's 'likes' array.
@@ -280,11 +263,9 @@ class BlogPostController{
     const user = await UserModel.getUser({_id: new ObjectId(userId)});
     if (!user) return res.status(404).json({error: "user not found"});
 
-    const result = await db.collection('BlogPosts').updateOne({_id: new ObjectId(postId)},
-    {$pull: {likes: new ObjectId(userId)} });
+    const result = await BlogModel.removeLiker(postId, userId);
     if (result.modifiedCount == 0) return res.status(500).json({error: "Like action unsucessful"});
     return res.status(204).json({message: "unliked liked successfulled"});
-
   }
 }
 
