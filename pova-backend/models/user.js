@@ -30,7 +30,7 @@ class UserModel{
    * @returns {object|null} object with error message if validation failed, null on success
    */
   static validateUser = (userData) => {
-    const { error } = userSchema.validate(userData, { abortEarly: false });
+    const { error } = this.userSchema.validate(userData, { abortEarly: false });
 
     if (error) {
       // Extract error message from Joi details
@@ -47,7 +47,7 @@ class UserModel{
    * @return {string|null} - user Id
    */
   static async addUser(userData) {
-    const validationError = validateUser(userData);
+    const validationError = this.validateUser(userData);
       if (validationError)
         return validationError;
 
