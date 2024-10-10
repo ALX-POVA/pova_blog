@@ -4,6 +4,7 @@ import { connectDB, client } from './config/db.js';
 import router from './routes/index.js'
 import path from 'path';
 import { fileURLToPath } from 'url';
+import cors from 'cors';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -14,6 +15,8 @@ const app = express();
 await connectDB();
 
 // Middleware to pass Json
+
+app.use(cors());
 app.use(express.json());
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 app.use('/api/v1/auth', router);
