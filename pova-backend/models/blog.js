@@ -1,6 +1,7 @@
 import { db } from "../config/db.js";
 import joi from "joi";
 import { ObjectId } from "mongodb";
+import UserModel from "./user.js";
 
 class BlogModel {
   static blogs = db.collection("BlogPosts");
@@ -28,12 +29,16 @@ class BlogModel {
 
     try {
       // Convert authorId to ObjectId
-      blogData.authorId = new ObjectId(blogData.authorId);
-      blogData.createdAt = new Date();
+      const user = await UserModel.getUser({ _id: new ObjectId(blogData.authorId) });
+      if (!user) return null;
+      blogData.author = user['fullName'];
+      blogData.createdAt = new Date().toISOString();
       blogData.published = Boolean(blogData.published || false);
 
       const result = await this.blogs.insertOne(blogData);
-      return result.insertedId.toString();
+      blogData._id = result.insertedId.toString();
+      delete blogData.authorId;
+      return result.acknowledged ? blogData : null;
     } catch (err) {
       console.error("Error adding blog post:", err);
       return null;
@@ -132,6 +137,10 @@ class BlogModel {
     .limit(limit)
     .toArray();
 
+    result.forEach((post) => {
+      delete post.content;
+    })
+
     return result;
   }
 
@@ -140,6 +149,10 @@ class BlogModel {
     .skip(skip)
     .limit(limit)
     .toArray();
+
+    result.forEach((post) => {
+      delete post.content;
+    })
 
     return result;
   }
@@ -150,6 +163,10 @@ class BlogModel {
     .skip(skip)
     .limit(limit)
     .toArray();
+
+    result.forEach((post) => {
+      delete post.content;
+    })
 
     return result;
   }

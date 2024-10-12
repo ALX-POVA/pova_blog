@@ -89,6 +89,7 @@ class BlogPostController{
     if (typeof userId !== 'string') return;
 
     const postData = req.body;
+    postData.authorId = new ObjectId(userId);
     const post = await BlogModel.addPost(postData);
     // checks if post is added to database
     if (post === null){
@@ -267,6 +268,21 @@ class BlogPostController{
     if (result.modifiedCount == 0) return res.status(500).json({error: "Like action unsucessful"});
     return res.status(204).json({message: "unliked liked successfulled"});
   }
+
+  static async fetchPosts(req, res){
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const skip = (page - 1) * limit;
+
+    const posts = await BlogModel.getPosts(skip, limit);
+
+    if (posts === null){
+      return res.status(500).json({error: "An error occured while fetching posts"});
+    }
+
+    return res.status(200).json(posts);
+  }
+
 }
 
 export default BlogPostController;
