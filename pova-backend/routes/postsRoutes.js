@@ -8,6 +8,7 @@ const postsRouter = Router();
 // posts operation endpoints
 
 postsRouter.get('/popular', BlogPostController.getPopularPosts);
+postsRouter.get('/', BlogPostController.fetchPosts);
 postsRouter.post('/', authorizeUser, BlogPostController.createPost);
 postsRouter.get('/search', BlogPostController.searchPostByCategory);
 postsRouter.post('/:postId/publish', authorizeUser, BlogPostController.publishPost);

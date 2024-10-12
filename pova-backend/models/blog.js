@@ -197,6 +197,21 @@ class BlogModel {
 
     return result.acknowledged;
   }
+
+  static async getPosts(skip, limit){
+    try{
+      const result = await this.blogs.find({published: true,
+      }).skip(skip).limit(limit).sort({createdAt: -1}).toArray();
+
+      result.forEach((post) => {
+        delete post.content;
+      })
+      return result;
+    } catch(err){
+      console.error("Error getting posts:", err);
+      return null;
+    }
+  }
 }
 
 export default BlogModel;
